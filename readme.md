@@ -50,7 +50,7 @@ docker run --interactive --tty \
   rudenkornk/docker_cpp:latest
 ```
 
-Instead of `$(pwd)` use path to your LaTeX repo.
+Instead of `$(pwd)` use path to your C++ repo.
 It is recommended to mount it into `/home/repo`.
 Be careful if mounting inside `ci_user`'s home directory (`/home/ci_user`): entrypoint script will change rights to what is written in `CI_UID` and `CI_GID` vars of everything inside home directory.
 
