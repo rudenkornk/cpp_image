@@ -113,7 +113,7 @@ $(BUILD_DIR)/gcc/HelloWorld: $(DOCKER_TEST_CONTAINER) $(HELLO_WORLD_DEPS)
 	docker exec $(DOCKER_TEST_CONTAINER_NAME) \
 		bash -c " \
 		CC=gcc CXX=g++ \
-		cmake -S $(TESTS_DIR) -B $(BUILD_DIR)/gcc && \
+		cmake -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -S $(TESTS_DIR) -B $(BUILD_DIR)/gcc && \
 		cmake --build $(BUILD_DIR)/gcc && \
 		./$(BUILD_DIR)/gcc/HelloWorld && \
 		: " | grep --quiet "Hello world!"
@@ -124,7 +124,7 @@ $(BUILD_DIR)/llvm/HelloWorld: $(DOCKER_TEST_CONTAINER) $(HELLO_WORLD_DEPS)
 	docker exec $(DOCKER_TEST_CONTAINER_NAME) \
 		bash -c " \
 		CC=clang CXX=clang++ \
-		cmake -S $(TESTS_DIR) -B $(BUILD_DIR)/llvm && \
+		cmake -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -S $(TESTS_DIR) -B $(BUILD_DIR)/llvm && \
 		cmake --build $(BUILD_DIR)/llvm && \
 		./$(BUILD_DIR)/llvm/HelloWorld && \
 		: " | grep --quiet "Hello world!"
@@ -147,10 +147,19 @@ $(BUILD_DIR)/gdb_test: $(BUILD_DIR)/gcc/HelloWorld $(BUILD_DIR)/llvm/HelloWorld
 		: "
 	touch $@
 
+$(BUILD_DIR)/clang_tidy_test: $(BUILD_DIR)/gcc/HelloWorld $(BUILD_DIR)/llvm/HelloWorld
+	docker exec $(DOCKER_TEST_CONTAINER_NAME) \
+		bash -c " \
+		clang-tidy -p $(BUILD_DIR)/gcc $(TESTS_DIR)/hello_world.cpp && \
+		clang-tidy -p $(BUILD_DIR)/llvm $(TESTS_DIR)/hello_world.cpp && \
+		: "
+	touch $@
+
 .PHONY: check
 check: \
 	$(BUILD_DIR)/gcc/HelloWorld \
 	$(BUILD_DIR)/llvm/HelloWorld \
+	$(BUILD_DIR)/clang_tidy_test \
 	$(BUILD_DIR)/gdb_test \
 	$(BUILD_DIR)/valgrind_test \
 
