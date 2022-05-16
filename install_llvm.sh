@@ -28,15 +28,43 @@ DEBAN_FRONTEND=noninteractive apt-get install --yes --no-install-recommends \
 update-alternatives \
   --install /usr/bin/clang clang /usr/bin/clang-$LLVM_VERSION $LLVM_VERSION"0" \
   --slave /usr/bin/FileCheck FileCheck /usr/bin/FileCheck-$LLVM_VERSION \
+  --slave /usr/bin/analyze-build analyze-build /usr/bin/analyze-build-$LLVM_VERSION \
   --slave /usr/bin/asan_symbolize asan_symbolize /usr/bin/asan_symbolize-$LLVM_VERSION \
   --slave /usr/bin/bugpoint bugpoint /usr/bin/bugpoint-$LLVM_VERSION \
+  --slave /usr/bin/c-index-test c-index-test /usr/bin/c-index-test-$LLVM_VERSION \
   --slave /usr/bin/clang++ clang++ /usr/bin/clang++-$LLVM_VERSION \
+  --slave /usr/bin/clang-apply-replacements clang-apply-replacements /usr/bin/clang-apply-replacements-$LLVM_VERSION \
+  --slave /usr/bin/clang-change-namespace clang-change-namespace /usr/bin/clang-change-namespace-$LLVM_VERSION \
+  --slave /usr/bin/clang-check clang-check /usr/bin/clang-check-$LLVM_VERSION \
+  --slave /usr/bin/clang-cl clang-cl /usr/bin/clang-cl-$LLVM_VERSION \
   --slave /usr/bin/clang-cpp clang-cpp /usr/bin/clang-cpp-$LLVM_VERSION \
+  --slave /usr/bin/clang-doc clang-doc /usr/bin/clang-doc-$LLVM_VERSION \
+  --slave /usr/bin/clang-extdef-mapping clang-extdef-mapping /usr/bin/clang-extdef-mapping-$LLVM_VERSION \
   --slave /usr/bin/clang-format clang-format /usr/bin/clang-format-$LLVM_VERSION \
+  --slave /usr/bin/clang-format-diff clang-format-diff /usr/bin/clang-format-diff-$LLVM_VERSION \
+  --slave /usr/bin/clang-include-fixer clang-include-fixer /usr/bin/clang-include-fixer-$LLVM_VERSION \
+  --slave /usr/bin/clang-linker-wrapper clang-linker-wrapper /usr/bin/clang-linker-wrapper-$LLVM_VERSION \
+  --slave /usr/bin/clang-move clang-move /usr/bin/clang-move-$LLVM_VERSION \
+  --slave /usr/bin/clang-nvlink-wrapper clang-nvlink-wrapper /usr/bin/clang-nvlink-wrapper-$LLVM_VERSION \
+  --slave /usr/bin/clang-offload-bundler clang-offload-bundler /usr/bin/clang-offload-bundler-$LLVM_VERSION \
+  --slave /usr/bin/clang-offload-wrapper clang-offload-wrapper /usr/bin/clang-offload-wrapper-$LLVM_VERSION \
+  --slave /usr/bin/clang-query clang-query /usr/bin/clang-query-$LLVM_VERSION \
+  --slave /usr/bin/clang-refactor clang-refactor /usr/bin/clang-refactor-$LLVM_VERSION \
+  --slave /usr/bin/clang-rename clang-rename /usr/bin/clang-rename-$LLVM_VERSION \
+  --slave /usr/bin/clang-reorder-fields clang-reorder-fields /usr/bin/clang-reorder-fields-$LLVM_VERSION \
+  --slave /usr/bin/clang-repl clang-repl /usr/bin/clang-repl-$LLVM_VERSION \
+  --slave /usr/bin/clang-scan-deps clang-scan-deps /usr/bin/clang-scan-deps-$LLVM_VERSION \
   --slave /usr/bin/clang-tidy clang-tidy /usr/bin/clang-tidy-$LLVM_VERSION \
+  --slave /usr/bin/clang-tidy-diff.py clang-tidy-diff.py /usr/bin/clang-tidy-diff-$LLVM_VERSION.py \
   --slave /usr/bin/clangd clangd /usr/bin/clangd-$LLVM_VERSION \
   --slave /usr/bin/count count /usr/bin/count-$LLVM_VERSION \
+  --slave /usr/bin/diagtool diagtool /usr/bin/diagtool-$LLVM_VERSION \
   --slave /usr/bin/dsymutil dsymutil /usr/bin/dsymutil-$LLVM_VERSION \
+  --slave /usr/bin/find-all-symbols find-all-symbols /usr/bin/find-all-symbols-$LLVM_VERSION \
+  --slave /usr/bin/git-clang-format git-clang-format /usr/bin/git-clang-format-$LLVM_VERSION \
+  --slave /usr/bin/hmaptool hmaptool /usr/bin/hmaptool-$LLVM_VERSION \
+  --slave /usr/bin/hwasan_symbolize hwasan_symbolize /usr/bin/hwasan_symbolize-$LLVM_VERSION \
+  --slave /usr/bin/intercept-build intercept-build /usr/bin/intercept-build-$LLVM_VERSION \
   --slave /usr/bin/ld.lld ld.lld /usr/bin/ld.lld-$LLVM_VERSION \
   --slave /usr/bin/ld64.lld ld64.lld /usr/bin/ld64.lld-$LLVM_VERSION \
   --slave /usr/bin/llc llc /usr/bin/llc-$LLVM_VERSION \
@@ -115,10 +143,18 @@ update-alternatives \
   --slave /usr/bin/llvm-undname llvm-undname /usr/bin/llvm-undname-$LLVM_VERSION \
   --slave /usr/bin/llvm-windres llvm-windres /usr/bin/llvm-windres-$LLVM_VERSION \
   --slave /usr/bin/llvm-xray llvm-xray /usr/bin/llvm-xray-$LLVM_VERSION \
+  --slave /usr/bin/modularize modularize /usr/bin/modularize-$LLVM_VERSION \
   --slave /usr/bin/not not /usr/bin/not-$LLVM_VERSION \
   --slave /usr/bin/obj2yaml obj2yaml /usr/bin/obj2yaml-$LLVM_VERSION \
   --slave /usr/bin/opt opt /usr/bin/opt-$LLVM_VERSION \
+  --slave /usr/bin/pp-trace pp-trace /usr/bin/pp-trace-$LLVM_VERSION \
+  --slave /usr/bin/run-clang-tidy run-clang-tidy /usr/bin/run-clang-tidy-$LLVM_VERSION \
+  --slave /usr/bin/run-clang-tidy.py run-clang-tidy.py /usr/bin/run-clang-tidy-$LLVM_VERSION.py \
+  --slave /usr/bin/sancov sancov /usr/bin/sancov-$LLVM_VERSION \
   --slave /usr/bin/sanstats sanstats /usr/bin/sanstats-$LLVM_VERSION \
+  --slave /usr/bin/scan-build scan-build /usr/bin/scan-build-$LLVM_VERSION \
+  --slave /usr/bin/scan-build-py scan-build-py /usr/bin/scan-build-py-$LLVM_VERSION \
+  --slave /usr/bin/scan-view scan-view /usr/bin/scan-view-$LLVM_VERSION \
   --slave /usr/bin/split-file split-file /usr/bin/split-file-$LLVM_VERSION \
   --slave /usr/bin/verify-uselistorder verify-uselistorder /usr/bin/verify-uselistorder-$LLVM_VERSION \
   --slave /usr/bin/wasm-ld wasm-ld /usr/bin/wasm-ld-$LLVM_VERSION \
