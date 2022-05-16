@@ -34,6 +34,10 @@ DOCKER_DEPS += install_boost.sh
 DOCKER_DEPS += install_cmake.sh
 DOCKER_DEPS += config_system.sh
 
+HELLO_WORLD_DEPS :=
+HELLO_WORLD_DEPS += $(TESTS_DIR)/hello_world.cpp
+HELLO_WORLD_DEPS += $(TESTS_DIR)/CMakeLists.txt
+
 .PHONY: $(DOCKER_IMAGE_NAME)
 $(DOCKER_IMAGE_NAME): $(DOCKER_IMAGE)
 
@@ -104,8 +108,51 @@ endif
 	sleep 1
 	mkdir --parents $(BUILD_DIR) && touch $@
 
+
+$(BUILD_DIR)/gcc/HelloWorld: $(DOCKER_TEST_CONTAINER) $(HELLO_WORLD_DEPS)
+	docker exec $(DOCKER_TEST_CONTAINER_NAME) \
+		bash -c " \
+		CC=gcc CXX=g++ \
+		cmake -S $(TESTS_DIR) -B $(BUILD_DIR)/gcc && \
+		cmake --build $(BUILD_DIR)/gcc && \
+		./$(BUILD_DIR)/gcc/HelloWorld && \
+		: " | grep --quiet "Hello world!"
+	# Touch in case cmake decided not to recompile
+	touch $@
+
+$(BUILD_DIR)/llvm/HelloWorld: $(DOCKER_TEST_CONTAINER) $(HELLO_WORLD_DEPS)
+	docker exec $(DOCKER_TEST_CONTAINER_NAME) \
+		bash -c " \
+		CC=clang CXX=clang++ \
+		cmake -S $(TESTS_DIR) -B $(BUILD_DIR)/llvm && \
+		cmake --build $(BUILD_DIR)/llvm && \
+		./$(BUILD_DIR)/llvm/HelloWorld && \
+		: " | grep --quiet "Hello world!"
+	# Touch in case cmake decided not to recompile
+	touch $@
+
+$(BUILD_DIR)/valgrind_test: $(BUILD_DIR)/gcc/HelloWorld $(BUILD_DIR)/llvm/HelloWorld
+	docker exec $(DOCKER_TEST_CONTAINER_NAME) \
+		bash -c " \
+		valgrind $(BUILD_DIR)/gcc/HelloWorld && \
+		valgrind $(BUILD_DIR)/llvm/HelloWorld && \
+		: "
+	touch $@
+
+$(BUILD_DIR)/gdb_test: $(BUILD_DIR)/gcc/HelloWorld $(BUILD_DIR)/llvm/HelloWorld
+	docker exec $(DOCKER_TEST_CONTAINER_NAME) \
+		bash -c " \
+		gdb -ex run -ex quit ./build/gcc/HelloWorld && \
+		gdb -ex run -ex quit ./build/llvm/HelloWorld && \
+		: "
+	touch $@
+
 .PHONY: check
-check:
+check: \
+	$(BUILD_DIR)/gcc/HelloWorld \
+	$(BUILD_DIR)/llvm/HelloWorld \
+	$(BUILD_DIR)/gdb_test \
+	$(BUILD_DIR)/valgrind_test \
 
 .PHONY: clean
 clean:
