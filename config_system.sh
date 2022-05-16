@@ -7,6 +7,8 @@ set -o xtrace
 
 apt-get update
 DEBAN_FRONTEND=noninteractive apt-get install --yes --no-install-recommends \
+  gdb \
   make \
+  valgrind \
   vim \
 
