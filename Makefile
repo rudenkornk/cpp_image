@@ -13,7 +13,7 @@ CI_BIND_MOUNT ?= $(shell pwd)
 CI_BIND_MOUNT := $(CI_BIND_MOUNT)
 KEEP_CI_USER_SUDO ?= false
 KEEP_CI_USER_SUDO := $(KEEP_CI_USER_SUDO)
-DOCKER_IMAGE_VERSION ?= 0.1.1
+DOCKER_IMAGE_VERSION ?= 0.1.2
 DOCKER_IMAGE_VERSION := $(DOCKER_IMAGE_VERSION)
 DOCKER_IMAGE_NAME := rudenkornk/$(PROJECT_NAME)
 DOCKER_IMAGE_TAG := $(DOCKER_IMAGE_NAME):$(DOCKER_IMAGE_VERSION)
@@ -82,6 +82,7 @@ endif
 		--user ci_user \
 		--env KEEP_CI_USER_SUDO=$(KEEP_CI_USER_SUDO) \
 		--env CI_UID="$$(id --user)" --env CI_GID="$$(id --group)" \
+		--env "TERM=xterm-256color" \
 		--name $(DOCKER_CONTAINER_NAME) \
 		--mount type=bind,source="$(CI_BIND_MOUNT)",target=/home/repo \
 		$(DOCKER_IMAGE_TAG)
@@ -102,6 +103,7 @@ endif
 	docker run --interactive --tty --detach \
 		--user ci_user \
 		--env CI_UID="$$(id --user)" --env CI_GID="$$(id --group)" \
+		--env "TERM=xterm-256color" \
 		--name $(DOCKER_TEST_CONTAINER_NAME) \
 		--mount type=bind,source="$$(pwd)",target=/home/repo \
 		$(DOCKER_IMAGE_TAG)
