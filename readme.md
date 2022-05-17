@@ -6,23 +6,23 @@ Docker image for C++ CI.
 
 
 ## Build
-```shell
+```bash
 make rudenkornk/docker_cpp
 ```
 Also, you can use Docker Hub image as cache source:
-```shell
+```bash
 docker pull rudenkornk/docker_cpp:latest
 DOCKER_CACHE_FROM=rudenkornk/docker_cpp:latest make rudenkornk/docker_cpp
 ```
 
 
 ## Test
-```shell
+```bash
 make check
 ```
 
 ## Run
-```shell
+```bash
 CI_BIND_MOUNT=$(pwd) make docker_cpp_container
 
 docker attach docker_cpp_container
@@ -31,7 +31,7 @@ docker exec -it docker_cpp_container bash -c "source ~/.profile && bash"
 ```
 
 ## Clean
-```shell
+```bash
 make clean
 # Optionally clean entire docker system and remove ALL containers
 ./clean_all_docker.sh
@@ -42,7 +42,7 @@ This repository supports three different scenarios
 
 ### 1. Use image directly for local testing or CI
 
-```shell
+```bash
 docker run --interactive --tty \
   --user ci_user \
   --env CI_UID="$(id --user)" --env CI_GID="$(id --group)" \
@@ -71,7 +71,7 @@ See also https://github.com/rudenkornk/docker_ci#2-use-it-in-github-actions
 
 ### 3. Use scripts from this repository to setup your own system:
 
-```shell
+```bash
 # Ask system administrator to install necessary packages
 ./install_gcc.sh
 ./install_llvm.sh
