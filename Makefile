@@ -157,6 +157,16 @@ $(BUILD_DIR)/clang_tidy_test: $(BUILD_DIR)/gcc/HelloWorld $(BUILD_DIR)/llvm/Hell
 		: "
 	touch $@
 
+$(BUILD_DIR)/lit_test: $(DOCKER_TEST_CONTAINER)
+	docker exec $(DOCKER_TEST_CONTAINER_NAME) \
+		bash -c "lit --version"
+	touch $@
+
+$(BUILD_DIR)/filecheck_test: $(DOCKER_TEST_CONTAINER)
+	docker exec $(DOCKER_TEST_CONTAINER_NAME) \
+		bash -c "FileCheck --version"
+	touch $@
+
 .PHONY: check
 check: \
 	$(BUILD_DIR)/gcc/HelloWorld \
@@ -164,6 +174,8 @@ check: \
 	$(BUILD_DIR)/clang_tidy_test \
 	$(BUILD_DIR)/gdb_test \
 	$(BUILD_DIR)/valgrind_test \
+	$(BUILD_DIR)/lit_test \
+	$(BUILD_DIR)/filecheck_test \
 
 .PHONY: clean
 clean:

@@ -24,3 +24,5 @@ rm get-pip.py
 update-alternatives \
   --install /usr/bin/python python /usr/bin/python3 300 \
 
+pip install lit
+
