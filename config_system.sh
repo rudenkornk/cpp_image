@@ -8,8 +8,19 @@ set -o xtrace
 apt-get update
 DEBAN_FRONTEND=noninteractive apt-get install --yes --no-install-recommends \
   bash-completion \
+  ca-certificates \
   gdb \
   make \
+  python3-distutils \
   valgrind \
   vim \
+  wget \
+
+
+wget https://bootstrap.pypa.io/get-pip.py
+python3 get-pip.py
+rm get-pip.py
+
+update-alternatives \
+  --install /usr/bin/python python /usr/bin/python3 300 \
 
