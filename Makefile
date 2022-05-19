@@ -53,7 +53,9 @@ docker_image_tag:
 docker_image_version:
 	$(info $(DOCKER_IMAGE_VERSION))
 
-DOCKER_IMAGE_ID = $(shell docker images --quiet $(DOCKER_IMAGE_TAG))
+IF_DOCKERD_UP = command -v docker &> /dev/null && pidof dockerd &> /dev/null
+
+DOCKER_IMAGE_ID = $(shell $(IF_DOCKERD_UP) && docker images --quiet $(DOCKER_IMAGE_TAG))
 DOCKER_IMAGE_CREATE_STATUS = $(shell [[ -z "$(DOCKER_IMAGE_ID)" ]] && echo "$(DOCKER_IMAGE)_not_created")
 DOCKER_CACHE_FROM_COMMAND = $(shell [[ ! -z "$(DOCKER_CACHE_FROM)" ]] && echo "--cache-from $(DOCKER_CACHE_FROM)")
 .PHONY: $(DOCKER_IMAGE)_not_created
@@ -70,8 +72,8 @@ $(DOCKER_IMAGE): $(DOCKER_DEPS) $(DOCKER_IMAGE_CREATE_STATUS)
 .PHONY: $(DOCKER_CONTAINER_NAME)
 $(DOCKER_CONTAINER_NAME): $(DOCKER_CONTAINER)
 
-DOCKER_CONTAINER_ID = $(shell docker container ls --quiet --all --filter name=^/$(DOCKER_CONTAINER_NAME)$)
-DOCKER_CONTAINER_STATE = $(shell docker container ls --format {{.State}} --all --filter name=^/$(DOCKER_CONTAINER_NAME)$)
+DOCKER_CONTAINER_ID = $(shell $(IF_DOCKERD_UP) && docker container ls --quiet --all --filter name=^/$(DOCKER_CONTAINER_NAME)$)
+DOCKER_CONTAINER_STATE = $(shell $(IF_DOCKERD_UP) && docker container ls --format {{.State}} --all --filter name=^/$(DOCKER_CONTAINER_NAME)$)
 DOCKER_CONTAINER_RUN_STATUS = $(shell [[ "$(DOCKER_CONTAINER_STATE)" != "running" ]] && echo "$(DOCKER_CONTAINER)_not_running")
 .PHONY: $(DOCKER_CONTAINER)_not_running
 $(DOCKER_CONTAINER): $(DOCKER_IMAGE) $(DOCKER_CONTAINER_RUN_STATUS)
@@ -92,8 +94,8 @@ endif
 .PHONY: $(DOCKER_TEST_CONTAINER_NAME)
 $(DOCKER_TEST_CONTAINER_NAME): $(DOCKER_TEST_CONTAINER)
 
-DOCKER_TEST_CONTAINER_ID = $(shell docker container ls --quiet --all --filter name=^/$(DOCKER_TEST_CONTAINER_NAME)$)
-DOCKER_TEST_CONTAINER_STATE = $(shell docker container ls --format {{.State}} --all --filter name=^/$(DOCKER_TEST_CONTAINER_NAME)$)
+DOCKER_TEST_CONTAINER_ID = $(shell $(IF_DOCKERD_UP) && docker container ls --quiet --all --filter name=^/$(DOCKER_TEST_CONTAINER_NAME)$)
+DOCKER_TEST_CONTAINER_STATE = $(shell $(IF_DOCKERD_UP) && docker container ls --format {{.State}} --all --filter name=^/$(DOCKER_TEST_CONTAINER_NAME)$)
 DOCKER_TEST_CONTAINER_RUN_STATUS = $(shell [[ "$(DOCKER_TEST_CONTAINER_STATE)" != "running" ]] && echo "$(DOCKER_TEST_CONTAINER)_not_running")
 .PHONY: $(DOCKER_TEST_CONTAINER)_not_running
 $(DOCKER_TEST_CONTAINER): $(DOCKER_IMAGE) $(DOCKER_TEST_CONTAINER_RUN_STATUS)
