@@ -62,9 +62,9 @@ jobs:
             ) \
           ]] && echo true || echo false
         )
-        echo "IMAGE_NAME=$(make --question docker_image_name)" >> $GITHUB_ENV
-        echo "IMAGE_TAG=$(make --question docker_image_tag)" >> $GITHUB_ENV
-        echo "IMAGE_VERSION=$(make --question docker_image_version)" >> $GITHUB_ENV
+        echo "IMAGE_NAME=$(make --silent docker_image_name)" >> $GITHUB_ENV
+        echo "IMAGE_TAG=$(make --silent docker_image_tag)" >> $GITHUB_ENV
+        echo "IMAGE_VERSION=$(make --silent docker_image_version)" >> $GITHUB_ENV
         echo "IS_DEPLOY=$IS_DEPLOY" >> $GITHUB_ENV
         echo "WILL_BE_DEPLOYED=$WILL_BE_DEPLOYED" >> $GITHUB_ENV
     - name: Download cache from Docker Hub
