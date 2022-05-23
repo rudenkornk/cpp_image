@@ -26,4 +26,5 @@ update-alternatives \
 
 pip install gcovr
 pip install lit
+pip install pathlib
 
