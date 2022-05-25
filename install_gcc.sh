@@ -18,14 +18,16 @@ DEBIAN_FRONTEND=noninteractive apt-get install --yes --no-install-recommends \
   g++-$GCC_VERSION \
 
 update-alternatives \
-  --install /usr/bin/gcc        gcc        /usr/bin/gcc-$GCC_VERSION        $GCC_VERSION"0" \
-  --slave   /usr/bin/cpp        cpp        /usr/bin/cpp-$GCC_VERSION        \
-  --slave   /usr/bin/g++        g++        /usr/bin/g++-$GCC_VERSION        \
-  --slave   /usr/bin/gcc-ar     gcc-ar     /usr/bin/gcc-ar-$GCC_VERSION     \
-  --slave   /usr/bin/gcc-nm     gcc-nm     /usr/bin/gcc-nm-$GCC_VERSION     \
-  --slave   /usr/bin/gcc-ranlib gcc-ranlib /usr/bin/gcc-ranlib-$GCC_VERSION \
-  --slave   /usr/bin/gcov       gcov       /usr/bin/gcov-$GCC_VERSION       \
-  --slave   /usr/bin/gcov-dump  gcov-dump  /usr/bin/gcov-dump-$GCC_VERSION  \
-  --slave   /usr/bin/gcov-tool  gcov-tool  /usr/bin/gcov-tool-$GCC_VERSION  \
-  --slave   /usr/bin/lto-dump   lto-dump   /usr/bin/lto-dump-$GCC_VERSION   \
+  --install /usr/bin/gcc gcc /usr/bin/gcc-$GCC_VERSION $GCC_VERSION"0" \
+  --slave /usr/bin/g++ g++ /usr/bin/g++-$GCC_VERSION \
+  --slave /usr/bin/gcc-ar gcc-ar /usr/bin/gcc-ar-$GCC_VERSION \
+  --slave /usr/bin/gcc-nm gcc-nm /usr/bin/gcc-nm-$GCC_VERSION \
+  --slave /usr/bin/gcc-ranlib gcc-ranlib /usr/bin/gcc-ranlib-$GCC_VERSION \
+  --slave /usr/bin/gcov gcov /usr/bin/gcov-$GCC_VERSION \
+  --slave /usr/bin/gcov-dump gcov-dump /usr/bin/gcov-dump-$GCC_VERSION \
+  --slave /usr/bin/gcov-tool gcov-tool /usr/bin/gcov-tool-$GCC_VERSION \
+  --slave /usr/bin/lto-dump lto-dump /usr/bin/lto-dump-$GCC_VERSION \
+
+update-alternatives \
+  --install /usr/bin/cpp cpp /usr/bin/cpp-$GCC_VERSION $GCC_VERSION"0" \
 
