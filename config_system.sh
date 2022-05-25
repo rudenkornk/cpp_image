@@ -21,9 +21,6 @@ wget https://bootstrap.pypa.io/get-pip.py
 python3 get-pip.py
 rm get-pip.py
 
-update-alternatives \
-  --install /usr/bin/python python /usr/bin/python3 300 \
-
 pip install gcovr
 pip install lit
 pip install pathlib
