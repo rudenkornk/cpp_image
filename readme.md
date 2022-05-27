@@ -60,7 +60,7 @@ jobs:
   build:
     runs-on: "ubuntu-20.04"
     container:
-      image: rudenkornk/docker_cpp:0.1.1
+      image: rudenkornk/docker_cpp:0.1.5
     steps:
     - name: Checkout repository
       uses: actions/checkout@v3
