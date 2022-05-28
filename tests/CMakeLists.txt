@@ -1,14 +1,14 @@
 cmake_minimum_required(VERSION 3.10)
 
-project(HelloWorld)
+project(hello_world)
 
-add_executable(HelloWorld)
+add_executable(hello_world)
 
 find_package(Boost REQUIRED)
 
-target_link_libraries(HelloWorld PRIVATE ${Boost_LIBRARIES})
+target_link_libraries(hello_world PRIVATE ${Boost_LIBRARIES})
 
-target_include_directories(HelloWorld PRIVATE ${Boost_INCLUDE_DIRS})
+target_include_directories(hello_world PRIVATE ${Boost_INCLUDE_DIRS})
 
-target_sources(HelloWorld PRIVATE hello_world.cpp)
+target_sources(hello_world PRIVATE hello_world.cpp)
 
