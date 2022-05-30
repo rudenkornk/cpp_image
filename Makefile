@@ -169,6 +169,11 @@ $(BUILD_DIR)/clang_tidy_test: $(BUILD_DIR)/gcc/hello_world $(BUILD_DIR)/llvm/hel
 		: "
 	touch $@
 
+$(BUILD_DIR)/clang_format_test: $(DOCKER_TEST_CONTAINER)
+	docker exec $(DOCKER_TEST_CONTAINER_NAME) \
+		bash -c "clang-format --version" | grep --perl-regexp --quiet "14\.\d+\.\d+"
+	touch $@
+
 $(BUILD_DIR)/lit_test: $(DOCKER_TEST_CONTAINER)
 	docker exec $(DOCKER_TEST_CONTAINER_NAME) \
 		bash -c "lit --version" | grep --perl-regexp --quiet "14\.\d+\.\d+"
