@@ -17,6 +17,7 @@ DEBAN_FRONTEND=noninteractive apt-get install --yes --no-install-recommends \
   wget \
 
 
+# This way it does not mess up gcc alternatives
 wget https://bootstrap.pypa.io/get-pip.py
 python3 get-pip.py
 rm get-pip.py
