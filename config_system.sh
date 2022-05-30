@@ -22,8 +22,8 @@ wget https://bootstrap.pypa.io/get-pip.py
 python3 get-pip.py
 rm get-pip.py
 
+pip install lit==14.0.3
 pip install gcovr
-pip install lit
 pip install pathlib
 pip install pyyaml
 

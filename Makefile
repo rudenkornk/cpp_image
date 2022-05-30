@@ -115,6 +115,10 @@ endif
 
 $(BUILD_DIR)/gcc/hello_world: $(DOCKER_TEST_CONTAINER) $(HELLO_WORLD_DEPS)
 	docker exec $(DOCKER_TEST_CONTAINER_NAME) \
+		bash -c "gcc --version" | grep --perl-regexp --quiet "12\.\d+\.\d+"
+	docker exec $(DOCKER_TEST_CONTAINER_NAME) \
+		bash -c "g++ --version" | grep --perl-regexp --quiet "12\.\d+\.\d+"
+	docker exec $(DOCKER_TEST_CONTAINER_NAME) \
 		bash -c " \
 		CC=gcc CXX=g++ \
 		cmake -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -S $(TESTS_DIR) -B $(BUILD_DIR)/gcc && \
@@ -125,6 +129,10 @@ $(BUILD_DIR)/gcc/hello_world: $(DOCKER_TEST_CONTAINER) $(HELLO_WORLD_DEPS)
 	touch $@
 
 $(BUILD_DIR)/llvm/hello_world: $(DOCKER_TEST_CONTAINER) $(HELLO_WORLD_DEPS)
+	docker exec $(DOCKER_TEST_CONTAINER_NAME) \
+		bash -c "clang --version" | grep --perl-regexp --quiet "14\.\d+\.\d+"
+	docker exec $(DOCKER_TEST_CONTAINER_NAME) \
+		bash -c "clang++ --version" | grep --perl-regexp --quiet "14\.\d+\.\d+"
 	docker exec $(DOCKER_TEST_CONTAINER_NAME) \
 		bash -c " \
 		CC=clang CXX=clang++ \
@@ -153,6 +161,8 @@ $(BUILD_DIR)/gdb_test: $(BUILD_DIR)/gcc/hello_world $(BUILD_DIR)/llvm/hello_worl
 
 $(BUILD_DIR)/clang_tidy_test: $(BUILD_DIR)/gcc/hello_world $(BUILD_DIR)/llvm/hello_world
 	docker exec $(DOCKER_TEST_CONTAINER_NAME) \
+		bash -c "clang-tidy --version" | grep --perl-regexp --quiet "14\.\d+\.\d+"
+	docker exec $(DOCKER_TEST_CONTAINER_NAME) \
 		bash -c " \
 		clang-tidy -p $(BUILD_DIR)/gcc $(TESTS_DIR)/hello_world.cpp && \
 		clang-tidy -p $(BUILD_DIR)/llvm $(TESTS_DIR)/hello_world.cpp && \
@@ -161,12 +171,12 @@ $(BUILD_DIR)/clang_tidy_test: $(BUILD_DIR)/gcc/hello_world $(BUILD_DIR)/llvm/hel
 
 $(BUILD_DIR)/lit_test: $(DOCKER_TEST_CONTAINER)
 	docker exec $(DOCKER_TEST_CONTAINER_NAME) \
-		bash -c "lit --version"
+		bash -c "lit --version" | grep --perl-regexp --quiet "14\.\d+\.\d+"
 	touch $@
 
 $(BUILD_DIR)/filecheck_test: $(DOCKER_TEST_CONTAINER)
 	docker exec $(DOCKER_TEST_CONTAINER_NAME) \
-		bash -c "FileCheck --version"
+		bash -c "FileCheck --version" | grep --perl-regexp --quiet "14\.\d+\.\d+"
 	touch $@
 
 .PHONY: check
