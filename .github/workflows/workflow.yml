@@ -62,9 +62,13 @@ jobs:
             ) \
           ]] && echo true || echo false
         )
-        echo "IMAGE_NAME=$(make --silent docker_image_name)" >> $GITHUB_ENV
-        echo "IMAGE_TAG=$(make --silent docker_image_tag)" >> $GITHUB_ENV
-        echo "IMAGE_VERSION=$(make --silent docker_image_version)" >> $GITHUB_ENV
+        IMAGE_NAME=$(make --silent docker_image_name)
+        IMAGE_TAG=$(make --silent docker_image_tag)
+        IMAGE_VERSION=$(make --silent docker_image_version)
+        echo "IMAGE_NAME=$IMAGE_NAME" >> $GITHUB_ENV
+        echo "IMAGE_TAG=$IMAGE_TAG" >> $GITHUB_ENV
+        echo "IMAGE_VERSION=$IMAGE_VERSION" >> $GITHUB_ENV
+        echo "DOCKER_CACHE_FROM=$IMAGE_NAME:latest" >> $GITHUB_ENV
         echo "IS_DEPLOY=$IS_DEPLOY" >> $GITHUB_ENV
         echo "WILL_BE_DEPLOYED=$WILL_BE_DEPLOYED" >> $GITHUB_ENV
     - name: Download cache from Docker Hub
@@ -74,7 +78,6 @@ jobs:
         docker pull $IMAGE_NAME:latest || echo "Cache was not loaded"
     - name: Build
       run: |
-        DOCKER_CACHE_FROM=$IMAGE_NAME:latest \
         make $IMAGE_NAME
     - name: Test
       run: make check
