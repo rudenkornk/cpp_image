@@ -11,6 +11,7 @@ DEBAN_FRONTEND=noninteractive apt-get install --yes --no-install-recommends \
   ca-certificates \
   gdb \
   make \
+  ninja-build \
   python3-distutils \
   valgrind \
   vim \
