@@ -23,7 +23,7 @@ make check
 
 ## Run
 ```bash
-CI_BIND_MOUNT=$(pwd) make docker_cpp_container
+make docker_cpp_container
 
 docker attach docker_cpp_container
 # OR
