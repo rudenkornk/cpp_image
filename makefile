@@ -23,8 +23,6 @@ DOCKER_CACHE_FROM := $(DOCKER_CACHE_FROM)
 DOCKER_CONTAINER_NAME ?= $(PROJECT_NAME)_container
 DOCKER_CONTAINER_NAME := $(DOCKER_CONTAINER_NAME)
 DOCKER_CONTAINER := $(BUILD_DIR)/$(DOCKER_CONTAINER_NAME)_$(DOCKER_IMAGE_VERSION)
-DOCKER_TEST_CONTAINER_NAME := $(PROJECT_NAME)_test_container
-DOCKER_TEST_CONTAINER := $(BUILD_DIR)/$(DOCKER_TEST_CONTAINER_NAME)_$(DOCKER_IMAGE_VERSION)
 
 DOCKER_DEPS :=
 DOCKER_DEPS += Dockerfile
@@ -86,39 +84,18 @@ endif
 		--env CI_UID="$$(id --user)" --env CI_GID="$$(id --group)" \
 		--env "TERM=xterm-256color" \
 		--name $(DOCKER_CONTAINER_NAME) \
-		--mount type=bind,source="$(CI_BIND_MOUNT)",target=/home/repo \
-		$(DOCKER_IMAGE_TAG)
-	sleep 1
-	mkdir --parents $(BUILD_DIR) && touch $@
-
-.PHONY: $(DOCKER_TEST_CONTAINER_NAME)
-$(DOCKER_TEST_CONTAINER_NAME): $(DOCKER_TEST_CONTAINER)
-
-DOCKER_TEST_CONTAINER_ID := $(shell $(IF_DOCKERD_UP) && docker container ls --quiet --all --filter name=^/$(DOCKER_TEST_CONTAINER_NAME)$)
-DOCKER_TEST_CONTAINER_STATE := $(shell $(IF_DOCKERD_UP) && docker container ls --format {{.State}} --all --filter name=^/$(DOCKER_TEST_CONTAINER_NAME)$)
-DOCKER_TEST_CONTAINER_RUN_STATUS := $(shell [[ "$(DOCKER_TEST_CONTAINER_STATE)" != "running" ]] && echo "$(DOCKER_TEST_CONTAINER)_not_running")
-.PHONY: $(DOCKER_TEST_CONTAINER)_not_running
-$(DOCKER_TEST_CONTAINER): $(DOCKER_IMAGE) $(DOCKER_TEST_CONTAINER_RUN_STATUS)
-ifneq ($(DOCKER_TEST_CONTAINER_ID),)
-	docker container rename $(DOCKER_TEST_CONTAINER_NAME) $(DOCKER_TEST_CONTAINER_NAME)_$(DOCKER_TEST_CONTAINER_ID)
-endif
-	docker run --interactive --tty --detach \
-		--user ci_user \
-		--env CI_UID="$$(id --user)" --env CI_GID="$$(id --group)" \
-		--env "TERM=xterm-256color" \
-		--name $(DOCKER_TEST_CONTAINER_NAME) \
 		--mount type=bind,source="$$(pwd)",target=/home/repo \
 		$(DOCKER_IMAGE_TAG)
 	sleep 1
 	mkdir --parents $(BUILD_DIR) && touch $@
 
 
-$(BUILD_DIR)/gcc/hello_world: $(DOCKER_TEST_CONTAINER) $(HELLO_WORLD_DEPS)
-	docker exec $(DOCKER_TEST_CONTAINER_NAME) \
+$(BUILD_DIR)/gcc/hello_world: $(DOCKER_CONTAINER) $(HELLO_WORLD_DEPS)
+	docker exec $(DOCKER_CONTAINER_NAME) \
 		bash -c "gcc --version" | grep --perl-regexp --quiet "12\.\d+\.\d+"
-	docker exec $(DOCKER_TEST_CONTAINER_NAME) \
+	docker exec $(DOCKER_CONTAINER_NAME) \
 		bash -c "g++ --version" | grep --perl-regexp --quiet "12\.\d+\.\d+"
-	docker exec $(DOCKER_TEST_CONTAINER_NAME) \
+	docker exec $(DOCKER_CONTAINER_NAME) \
 		bash -c " \
 		CC=gcc CXX=g++ \
 		cmake -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -S $(TESTS_DIR) -B $(BUILD_DIR)/gcc && \
@@ -128,12 +105,12 @@ $(BUILD_DIR)/gcc/hello_world: $(DOCKER_TEST_CONTAINER) $(HELLO_WORLD_DEPS)
 	# Touch in case cmake decided not to recompile
 	touch $@
 
-$(BUILD_DIR)/llvm/hello_world: $(DOCKER_TEST_CONTAINER) $(HELLO_WORLD_DEPS)
-	docker exec $(DOCKER_TEST_CONTAINER_NAME) \
+$(BUILD_DIR)/llvm/hello_world: $(DOCKER_CONTAINER) $(HELLO_WORLD_DEPS)
+	docker exec $(DOCKER_CONTAINER_NAME) \
 		bash -c "clang --version" | grep --perl-regexp --quiet "14\.\d+\.\d+"
-	docker exec $(DOCKER_TEST_CONTAINER_NAME) \
+	docker exec $(DOCKER_CONTAINER_NAME) \
 		bash -c "clang++ --version" | grep --perl-regexp --quiet "14\.\d+\.\d+"
-	docker exec $(DOCKER_TEST_CONTAINER_NAME) \
+	docker exec $(DOCKER_CONTAINER_NAME) \
 		bash -c " \
 		CC=clang CXX=clang++ \
 		cmake -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -S $(TESTS_DIR) -B $(BUILD_DIR)/llvm && \
@@ -144,7 +121,7 @@ $(BUILD_DIR)/llvm/hello_world: $(DOCKER_TEST_CONTAINER) $(HELLO_WORLD_DEPS)
 	touch $@
 
 $(BUILD_DIR)/valgrind_test: $(BUILD_DIR)/gcc/hello_world $(BUILD_DIR)/llvm/hello_world
-	docker exec $(DOCKER_TEST_CONTAINER_NAME) \
+	docker exec $(DOCKER_CONTAINER_NAME) \
 		bash -c " \
 		valgrind $(BUILD_DIR)/gcc/hello_world && \
 		valgrind $(BUILD_DIR)/llvm/hello_world && \
@@ -152,7 +129,7 @@ $(BUILD_DIR)/valgrind_test: $(BUILD_DIR)/gcc/hello_world $(BUILD_DIR)/llvm/hello
 	touch $@
 
 $(BUILD_DIR)/gdb_test: $(BUILD_DIR)/gcc/hello_world $(BUILD_DIR)/llvm/hello_world
-	docker exec $(DOCKER_TEST_CONTAINER_NAME) \
+	docker exec $(DOCKER_CONTAINER_NAME) \
 		bash -c " \
 		gdb -ex run -ex quit ./build/gcc/hello_world && \
 		gdb -ex run -ex quit ./build/llvm/hello_world && \
@@ -160,27 +137,27 @@ $(BUILD_DIR)/gdb_test: $(BUILD_DIR)/gcc/hello_world $(BUILD_DIR)/llvm/hello_worl
 	touch $@
 
 $(BUILD_DIR)/clang_tidy_test: $(BUILD_DIR)/gcc/hello_world $(BUILD_DIR)/llvm/hello_world
-	docker exec $(DOCKER_TEST_CONTAINER_NAME) \
+	docker exec $(DOCKER_CONTAINER_NAME) \
 		bash -c "clang-tidy --version" | grep --perl-regexp --quiet "14\.\d+\.\d+"
-	docker exec $(DOCKER_TEST_CONTAINER_NAME) \
+	docker exec $(DOCKER_CONTAINER_NAME) \
 		bash -c " \
 		clang-tidy -p $(BUILD_DIR)/gcc $(TESTS_DIR)/hello_world.cpp && \
 		clang-tidy -p $(BUILD_DIR)/llvm $(TESTS_DIR)/hello_world.cpp && \
 		: "
 	touch $@
 
-$(BUILD_DIR)/clang_format_test: $(DOCKER_TEST_CONTAINER)
-	docker exec $(DOCKER_TEST_CONTAINER_NAME) \
+$(BUILD_DIR)/clang_format_test: $(DOCKER_CONTAINER)
+	docker exec $(DOCKER_CONTAINER_NAME) \
 		bash -c "clang-format --version" | grep --perl-regexp --quiet "14\.\d+\.\d+"
 	touch $@
 
-$(BUILD_DIR)/lit_test: $(DOCKER_TEST_CONTAINER)
-	docker exec $(DOCKER_TEST_CONTAINER_NAME) \
+$(BUILD_DIR)/lit_test: $(DOCKER_CONTAINER)
+	docker exec $(DOCKER_CONTAINER_NAME) \
 		bash -c "lit --version" | grep --perl-regexp --quiet "14\.\d+\.\d+"
 	touch $@
 
-$(BUILD_DIR)/filecheck_test: $(DOCKER_TEST_CONTAINER)
-	docker exec $(DOCKER_TEST_CONTAINER_NAME) \
+$(BUILD_DIR)/filecheck_test: $(DOCKER_CONTAINER)
+	docker exec $(DOCKER_CONTAINER_NAME) \
 		bash -c "FileCheck --version" | grep --perl-regexp --quiet "14\.\d+\.\d+"
 	touch $@
 
@@ -196,8 +173,8 @@ check: \
 
 .PHONY: clean
 clean:
-	docker container ls --quiet --filter name=$(DOCKER_TEST_CONTAINER_NAME)_ | \
+	docker container ls --quiet --filter name=$(DOCKER_CONTAINER_NAME)_ | \
 		ifne xargs docker stop
-	docker container ls --quiet --filter name=$(DOCKER_TEST_CONTAINER_NAME)_ --all | \
+	docker container ls --quiet --filter name=$(DOCKER_CONTAINER_NAME)_ --all | \
 		ifne xargs docker rm
 
