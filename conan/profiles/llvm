@@ -1,0 +1,11 @@
+include(default)
+
+[settings]
+compiler=clang
+compiler.version=14
+compiler.libcxx=libstdc++11
+[options]
+[build_requires]
+[env]
+CC=clang
+CXX=clang++

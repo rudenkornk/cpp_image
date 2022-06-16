@@ -7,15 +7,11 @@ set -o xtrace
 
 apt-get update
 DEBAN_FRONTEND=noninteractive apt-get install --yes --no-install-recommends \
-  bash-completion \
-  gdb \
-  make \
-  ninja-build \
-  valgrind \
-  vim \
+  ca-certificates \
+  wget \
 
-pip install lit==14.0.3
-pip install gcovr
-pip install pathlib
-pip install pyyaml
+wget https://github.com/mikefarah/yq/releases/download/v4.25.2/yq_linux_amd64 -O /usr/bin/yq
+chmod +x /usr/bin/yq
+
+pip install conan==1.49.0
 

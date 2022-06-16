@@ -15,15 +15,16 @@ DEBAN_FRONTEND=noninteractive apt-get install --yes --no-install-recommends \
   software-properties-common \
   wget \
 
-wget https://apt.llvm.org/llvm.sh
-chmod +x llvm.sh
-sed --in-place 's/^add-apt-repository/add-apt-repository --yes/g' llvm.sh
-./llvm.sh $LLVM_VERSION
-rm llvm.sh
-
 DEBAN_FRONTEND=noninteractive apt-get install --yes --no-install-recommends \
-  clang-tidy-$LLVM_VERSION \
+  clang-$LLVM_VERSION \
   clang-format-$LLVM_VERSION \
+  clang-tidy-$LLVM_VERSION \
+  clangd-$LLVM_VERSION \
+  libc++-11-dev \
+  libc++abi-11-dev \
+  lld-$LLVM_VERSION \
+  lldb-$LLVM_VERSION \
+  llvm-$LLVM_VERSION-dev \
 
 update-alternatives \
   --install /usr/bin/clang clang /usr/bin/clang-$LLVM_VERSION $LLVM_VERSION"0" \

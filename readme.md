@@ -75,8 +75,13 @@ See also https://github.com/rudenkornk/docker_ci#2-use-it-in-github-actions
 # Ask system administrator to install necessary packages
 ./install_gcc.sh
 ./install_llvm.sh
-./install_boost.sh
 ./install_cmake.sh
+./install_python.sh
+./install_conan.sh
 ./config_system.sh
+
+# Config normal user
+cp --recursive conan ~/.conan
+./config_conan.sh
 ```
 
