@@ -1,0 +1,24 @@
+{% set flags = "" %}
+
+[settings]
+{% if os.getenv("ASAN") == "ON" -%}
+  {% set flags = flags + "-fsanitize=address " %}
+  compiler.address_sanitizer=True
+{%- endif %}
+
+{% if os.getenv("UBSAN") == "ON" -%}
+  {% set flags = flags + "-fsanitize=undefined " %}
+  compiler.ub_sanitizer=True
+{%- endif %}
+
+{% if os.getenv("TSAN") == "ON" -%}
+  {% set flags = flags + "-fsanitize=thread " %}
+  compiler.thread_sanitizer=True
+{%- endif %}
+
+[env]
+{% if flags -%}
+  CFLAGS={{ flags }}
+  CXXFLAGS={{ flags }}
+  LDFLAGS={{ flags }}
+{%- endif %}

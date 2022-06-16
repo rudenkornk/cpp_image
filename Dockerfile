@@ -7,15 +7,24 @@ WORKDIR /root
 COPY install_gcc.sh ./
 RUN ./install_gcc.sh
 
-COPY install_boost.sh ./
-RUN ./install_boost.sh
-
-# llvm goes after boost, because it is expected that it will be changed more frequently than boost
 COPY install_llvm.sh ./
 RUN ./install_llvm.sh
 
 COPY install_cmake.sh ./
 RUN ./install_cmake.sh
+
+COPY install_python.sh ./
+RUN ./install_python.sh
+
+COPY install_conan.sh ./
+RUN ./install_conan.sh
+
+COPY conan/ /root/.conan/
+COPY --chown=ci_user conan/ /home/ci_user/.conan/
+COPY config_conan.sh ./
+RUN ./config_conan.sh
+COPY --chown=ci_user config_conan.sh /home/ci_user/
+RUN sudo --login --user ci_user /home/ci_user/config_conan.sh
 
 COPY config_system.sh ./
 RUN ./config_system.sh
