@@ -1,0 +1,34 @@
+include(default)
+
+{% set flags = "" %}
+
+[settings]
+compiler=clang
+compiler.version=14
+compiler.libcxx=libstdc++11
+
+{% if os.getenv("ASAN") == "ON" -%}
+  {% set flags = flags + "-fsanitize=address " %}
+  compiler.address_sanitizer=True
+{%- endif %}
+
+{% if os.getenv("UBSAN") == "ON" -%}
+  {% set flags = flags + "-fsanitize=undefined " %}
+  compiler.ub_sanitizer=True
+{%- endif %}
+
+{% if os.getenv("TSAN") == "ON" -%}
+  {% set flags = flags + "-fsanitize=thread " %}
+  compiler.thread_sanitizer=True
+{%- endif %}
+
+[options]
+[build_requires]
+[env]
+CC=clang
+CXX=clang++
+{% if flags -%}
+  CFLAGS={{ flags }}
+  CXXFLAGS={{ flags }}
+  LDFLAGS={{ flags }}
+{%- endif %}

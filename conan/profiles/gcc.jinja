@@ -1,6 +1,12 @@
+include(default)
+
 {% set flags = "" %}
 
 [settings]
+compiler=gcc
+compiler.version=12
+compiler.libcxx=libstdc++11
+
 {% if os.getenv("ASAN") == "ON" -%}
   {% set flags = flags + "-fsanitize=address " %}
   compiler.address_sanitizer=True
@@ -16,7 +22,11 @@
   compiler.thread_sanitizer=True
 {%- endif %}
 
+[options]
+[build_requires]
 [env]
+CC=gcc
+CXX=g++
 {% if flags -%}
   CFLAGS={{ flags }}
   CXXFLAGS={{ flags }}

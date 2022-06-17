@@ -6,7 +6,7 @@ TESTS_DIR := tests
 VCS_REF := $(shell git rev-parse HEAD)
 BUILD_DATE := $(shell date --rfc-3339=date)
 KEEP_CI_USER_SUDO ?= false
-DOCKER_IMAGE_VERSION := 0.2.0
+DOCKER_IMAGE_VERSION := 0.2.1
 DOCKER_IMAGE_NAME := rudenkornk/$(PROJECT_NAME)
 DOCKER_IMAGE_TAG := $(DOCKER_IMAGE_NAME):$(DOCKER_IMAGE_VERSION)
 DOCKER_IMAGE := $(BUILD_DIR)/$(PROJECT_NAME)_image_$(DOCKER_IMAGE_VERSION)
@@ -90,8 +90,7 @@ $(BUILD_DIR)/gcc/hello_world: $(DOCKER_CONTAINER) $(HELLO_WORLD_DEPS)
 	docker exec $(DOCKER_CONTAINER_NAME) \
 		bash -c " \
 		conan install \
-		--profile:host gcc \
-		--profile:host sanitize.jinja \
+		--profile:host gcc.jinja \
 		--settings build_type=Release \
 		--build missing \
 		--install-folder $(BUILD_DIR)/gcc $(TESTS_DIR) \
@@ -111,8 +110,7 @@ $(BUILD_DIR)/llvm/hello_world: $(DOCKER_CONTAINER) $(HELLO_WORLD_DEPS)
 	docker exec $(DOCKER_CONTAINER_NAME) \
 		bash -c " \
 		conan install \
-		--profile:host llvm \
-		--profile:host sanitize.jinja \
+		--profile:host llvm.jinja \
 		--settings build_type=Release \
 		--build missing \
 		--install-folder $(BUILD_DIR)/llvm $(TESTS_DIR) \
