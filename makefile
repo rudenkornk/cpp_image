@@ -91,6 +91,7 @@ $(BUILD_DIR)/gcc/hello_world: $(DOCKER_CONTAINER) $(HELLO_WORLD_DEPS)
 		bash -c " \
 		conan install \
 		--profile:host gcc.jinja \
+		--profile:build gcc.jinja \
 		--settings build_type=Release \
 		--build missing \
 		--install-folder $(BUILD_DIR)/gcc $(TESTS_DIR) \
@@ -111,6 +112,7 @@ $(BUILD_DIR)/llvm/hello_world: $(DOCKER_CONTAINER) $(HELLO_WORLD_DEPS)
 		bash -c " \
 		conan install \
 		--profile:host llvm.jinja \
+		--profile:build llvm.jinja \
 		--settings build_type=Release \
 		--build missing \
 		--install-folder $(BUILD_DIR)/llvm $(TESTS_DIR) \
