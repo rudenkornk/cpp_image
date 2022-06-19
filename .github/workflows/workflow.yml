@@ -78,7 +78,7 @@ jobs:
         echo "REMOTE_IMAGE_LATEST=$REMOTE_IMAGE_LATEST" >> $GITHUB_ENV
 
         echo "DOCKER_CACHE_FROM=$REMOTE_IMAGE_LATEST" >> $GITHUB_ENV
-    - name: "[DEPLOY] Login to image registry"
+    - name: "Login to image registry"
       uses: docker/login-action@v1
       with:
         #registry: ${{ env.registry }} # uncomment for any registry except docker.io
