@@ -6,7 +6,7 @@ TESTS_DIR := tests
 VCS_REF := $(shell git rev-parse HEAD)
 BUILD_DATE := $(shell date --rfc-3339=date)
 KEEP_CI_USER_SUDO ?= false
-DOCKER_IMAGE_VERSION := 0.2.1
+DOCKER_IMAGE_VERSION := 0.2.2
 DOCKER_IMAGE_NAME := rudenkornk/$(PROJECT_NAME)
 DOCKER_IMAGE_TAG := $(DOCKER_IMAGE_NAME):$(DOCKER_IMAGE_VERSION)
 DOCKER_IMAGE := $(BUILD_DIR)/$(PROJECT_NAME)_image_$(DOCKER_IMAGE_VERSION)
@@ -89,6 +89,8 @@ $(BUILD_DIR)/gcc/hello_world: $(DOCKER_CONTAINER) $(HELLO_WORLD_DEPS)
 		bash -c "g++ --version" | grep --perl-regexp --quiet "12\.\d+\.\d+"
 	docker exec $(DOCKER_CONTAINER_NAME) \
 		bash -c " \
+		ASAN=ON \
+		UBSAN=ON \
 		conan install \
 		--profile:host gcc.jinja \
 		--profile:build gcc.jinja \
@@ -97,10 +99,24 @@ $(BUILD_DIR)/gcc/hello_world: $(DOCKER_CONTAINER) $(HELLO_WORLD_DEPS)
 		--install-folder $(BUILD_DIR)/gcc $(TESTS_DIR) \
 		"
 	docker exec $(DOCKER_CONTAINER_NAME) \
-		bash -c "conan build --build-folder $(BUILD_DIR)/gcc $(TESTS_DIR)"
+		bash -c " \
+		cmake \
+		-S $(TESTS_DIR) \
+		-B $(BUILD_DIR)/gcc \
+		-DCMAKE_BUILD_TYPE=Release \
+		-DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
+		-DCMAKE_TOOLCHAIN_FILE=\$$(realpath $(BUILD_DIR))/gcc/conan_toolchain.cmake \
+	"
+	docker exec $(DOCKER_CONTAINER_NAME) \
+		bash -c " \
+		cmake \
+		--build $(BUILD_DIR)/gcc \
+	"
 	docker exec $(DOCKER_CONTAINER_NAME) \
 		bash -c "./$(BUILD_DIR)/gcc/hello_world" | grep --quiet "Hello world!"
 	grep --quiet "g++" $(BUILD_DIR)/gcc/compile_commands.json
+	grep --quiet "\-fsanitize=address" $(BUILD_DIR)/gcc/compile_commands.json
+	grep --quiet "\-fsanitize=undefined" $(BUILD_DIR)/gcc/compile_commands.json
 	touch $@
 
 $(BUILD_DIR)/llvm/hello_world: $(DOCKER_CONTAINER) $(HELLO_WORLD_DEPS)
@@ -110,6 +126,8 @@ $(BUILD_DIR)/llvm/hello_world: $(DOCKER_CONTAINER) $(HELLO_WORLD_DEPS)
 		bash -c "clang++ --version" | grep --perl-regexp --quiet "14\.\d+\.\d+"
 	docker exec $(DOCKER_CONTAINER_NAME) \
 		bash -c " \
+		ASAN=ON \
+		UBSAN=ON \
 		conan install \
 		--profile:host llvm.jinja \
 		--profile:build llvm.jinja \
@@ -118,18 +136,29 @@ $(BUILD_DIR)/llvm/hello_world: $(DOCKER_CONTAINER) $(HELLO_WORLD_DEPS)
 		--install-folder $(BUILD_DIR)/llvm $(TESTS_DIR) \
 		"
 	docker exec $(DOCKER_CONTAINER_NAME) \
-		bash -c "conan build --build-folder $(BUILD_DIR)/llvm $(TESTS_DIR)"
+		bash -c " \
+		cmake \
+		-S $(TESTS_DIR) \
+		-B $(BUILD_DIR)/llvm \
+		-DCMAKE_BUILD_TYPE=Release \
+		-DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
+		-DCMAKE_TOOLCHAIN_FILE=\$$(realpath $(BUILD_DIR))/llvm/conan_toolchain.cmake \
+	"
+	docker exec $(DOCKER_CONTAINER_NAME) \
+		bash -c " \
+		cmake \
+		--build $(BUILD_DIR)/llvm \
+	"
 	docker exec $(DOCKER_CONTAINER_NAME) \
 		bash -c "./$(BUILD_DIR)/llvm/hello_world" | grep --quiet "Hello world!"
 	grep --quiet "clang++" $(BUILD_DIR)/llvm/compile_commands.json
+	grep --quiet "\-fsanitize=address" $(BUILD_DIR)/llvm/compile_commands.json
+	grep --quiet "\-fsanitize=undefined" $(BUILD_DIR)/llvm/compile_commands.json
 	touch $@
 
 $(BUILD_DIR)/valgrind_test: $(BUILD_DIR)/gcc/hello_world $(BUILD_DIR)/llvm/hello_world
 	docker exec $(DOCKER_CONTAINER_NAME) \
-		bash -c " \
-		valgrind $(BUILD_DIR)/gcc/hello_world && \
-		valgrind $(BUILD_DIR)/llvm/hello_world && \
-		: "
+		bash -c "valgrind --version"
 	touch $@
 
 $(BUILD_DIR)/gdb_test: $(BUILD_DIR)/gcc/hello_world $(BUILD_DIR)/llvm/hello_world

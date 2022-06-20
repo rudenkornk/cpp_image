@@ -23,32 +23,22 @@ class HelloWorldConan(ConanFile):
 
     generators = []
 
-    # Patch toolchain file, since default generator creates erroneous
-    # warnings, which cannot be overridden with generate() function
-    def _patch_toolchain_file(self, toolchain_file: str):
-        with open(toolchain_file, "r") as f:
-            contents = f.read()
-        contents = re.sub(r'message\(FATAL_ERROR.*?CMP0091.*', "", contents)
-        with open(toolchain_file, "w") as f:
-            f.write(contents)
-
     def generate(self):
-        CMakeDeps(self).generate()
+        CMakeDeps(conanfile=self).generate()
 
-        tc = CMakeToolchain(self)
-        toolchain_file = tc._conanfile.conf.get(
-            "tools.cmake.cmaketoolchain:toolchain_file") or tc.filename
+        generator = os.getenv("GENERATOR")
+        tc = CMakeToolchain(conanfile=self, generator=generator)
+
+        vs_block = tc.blocks["vs_runtime"].template
+        vs_block = re.sub(r'\s+message\(FATAL_ERROR.*?CMP0091.*', "", vs_block)
+
+        if self.settings.compiler == "gcc":
+            tc.variables["CMAKE_C_COMPILER"] = "gcc"
+            tc.variables["CMAKE_CXX_COMPILER"] = "g++"
+        elif self.settings.compiler == "clang":
+            tc.variables["CMAKE_C_COMPILER"] = "clang"
+            tc.variables["CMAKE_CXX_COMPILER"] = "clang++"
+        elif (self.settings.compiler == "Visual Studio") and (self.settings.compiler.toolset):
+            tc.variables["CMAKE_GENERATOR_TOOLSET"] = self.settings.compiler.toolset
         tc.generate()
-        self._patch_toolchain_file(toolchain_file)
-
-    def build(self):
-        cmake = CMake(self)
-        toolchain_file = os.path.join(
-            cmake._conanfile.install_folder, "conan_toolchain.cmake")
-        args = [
-            "-DCMAKE_EXPORT_COMPILE_COMMANDS=ON",
-            "-DCMAKE_TOOLCHAIN_FILE={}".format(toolchain_file),
-        ]
-        cmake.configure(args=args)
-        cmake.build()
 
