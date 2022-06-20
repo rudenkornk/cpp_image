@@ -16,3 +16,5 @@ for compiler in \
   yq "with(.compiler.${compiler}.ub_sanitizer; . = [\"None\", True] | . style=\"flow\")"  -i ~/.conan/settings.yml
 done
 
+sed -i 's/print_run_commands = False/print_run_commands = True/g' ~/.conan/conan.conf
+

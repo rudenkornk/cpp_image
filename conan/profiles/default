@@ -6,3 +6,4 @@ arch_build=x86_64
 [options]
 [build_requires]
 [env]
+[conf]
