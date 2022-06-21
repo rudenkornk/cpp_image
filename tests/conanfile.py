@@ -25,12 +25,11 @@ class HelloWorldConan(ConanFile):
 
     def generate(self):
         CMakeDeps(conanfile=self).generate()
-
-        generator = os.getenv("GENERATOR")
-        tc = CMakeToolchain(conanfile=self, generator=generator)
+        tc = CMakeToolchain(conanfile=self)
 
         vs_block = tc.blocks["vs_runtime"].template
         vs_block = re.sub(r'\s+message\(FATAL_ERROR.*?CMP0091.*', "", vs_block)
+        tc.blocks["vs_runtime"].template = vs_block
 
         if self.settings.compiler == "gcc":
             tc.variables["CMAKE_C_COMPILER"] = "gcc"
@@ -38,7 +37,5 @@ class HelloWorldConan(ConanFile):
         elif self.settings.compiler == "clang":
             tc.variables["CMAKE_C_COMPILER"] = "clang"
             tc.variables["CMAKE_CXX_COMPILER"] = "clang++"
-        elif (self.settings.compiler == "Visual Studio") and (self.settings.compiler.toolset):
-            tc.variables["CMAKE_GENERATOR_TOOLSET"] = self.settings.compiler.toolset
         tc.generate()
 
