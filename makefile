@@ -103,7 +103,8 @@ $(BUILD_DIR)/gcc/hello_world: $(DOCKER_CONTAINER) $(HELLO_WORLD_DEPS)
 		cmake \
 		-S $(TESTS_DIR) \
 		-B $(BUILD_DIR)/gcc \
-		-DCMAKE_BUILD_TYPE=Release \
+		-G \"Ninja Multi-Config\" \
+		-DCMAKE_CONFIGURATION_TYPES=\"Release\" \
 		-DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
 		-DCMAKE_TOOLCHAIN_FILE=\$$(realpath $(BUILD_DIR))/gcc/conan_toolchain.cmake \
 	"
@@ -111,9 +112,11 @@ $(BUILD_DIR)/gcc/hello_world: $(DOCKER_CONTAINER) $(HELLO_WORLD_DEPS)
 		bash -c " \
 		cmake \
 		--build $(BUILD_DIR)/gcc \
+		--config Release \
+		--verbose \
 	"
 	docker exec $(DOCKER_CONTAINER_NAME) \
-		bash -c "./$(BUILD_DIR)/gcc/hello_world" | grep --quiet "Hello world!"
+		bash -c "./$(BUILD_DIR)/gcc/Release/hello_world" | grep --quiet "Hello world!"
 	grep --quiet "g++" $(BUILD_DIR)/gcc/compile_commands.json
 	grep --quiet "\-fsanitize=address" $(BUILD_DIR)/gcc/compile_commands.json
 	grep --quiet "\-fsanitize=undefined" $(BUILD_DIR)/gcc/compile_commands.json
@@ -140,7 +143,8 @@ $(BUILD_DIR)/llvm/hello_world: $(DOCKER_CONTAINER) $(HELLO_WORLD_DEPS)
 		cmake \
 		-S $(TESTS_DIR) \
 		-B $(BUILD_DIR)/llvm \
-		-DCMAKE_BUILD_TYPE=Release \
+		-G \"Ninja Multi-Config\" \
+		-DCMAKE_CONFIGURATION_TYPES=\"Release\" \
 		-DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
 		-DCMAKE_TOOLCHAIN_FILE=\$$(realpath $(BUILD_DIR))/llvm/conan_toolchain.cmake \
 	"
@@ -148,9 +152,11 @@ $(BUILD_DIR)/llvm/hello_world: $(DOCKER_CONTAINER) $(HELLO_WORLD_DEPS)
 		bash -c " \
 		cmake \
 		--build $(BUILD_DIR)/llvm \
+		--config Release \
+		--verbose \
 	"
 	docker exec $(DOCKER_CONTAINER_NAME) \
-		bash -c "./$(BUILD_DIR)/llvm/hello_world" | grep --quiet "Hello world!"
+		bash -c "./$(BUILD_DIR)/llvm/Release/hello_world" | grep --quiet "Hello world!"
 	grep --quiet "clang++" $(BUILD_DIR)/llvm/compile_commands.json
 	grep --quiet "\-fsanitize=address" $(BUILD_DIR)/llvm/compile_commands.json
 	grep --quiet "\-fsanitize=undefined" $(BUILD_DIR)/llvm/compile_commands.json
