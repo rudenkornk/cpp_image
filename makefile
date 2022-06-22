@@ -106,7 +106,7 @@ $(BUILD_DIR)/gcc/hello_world: $(DOCKER_CONTAINER) $(HELLO_WORLD_DEPS)
 		-G \"Ninja Multi-Config\" \
 		-DCMAKE_CONFIGURATION_TYPES=\"Release\" \
 		-DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
-		-DCMAKE_TOOLCHAIN_FILE=\$$(realpath $(BUILD_DIR))/gcc/conan_toolchain.cmake \
+		-DCMAKE_TOOLCHAIN_FILE=\"conan_toolchain.cmake\" \
 	"
 	docker exec $(DOCKER_CONTAINER_NAME) \
 		bash -c " \
@@ -146,7 +146,7 @@ $(BUILD_DIR)/llvm/hello_world: $(DOCKER_CONTAINER) $(HELLO_WORLD_DEPS)
 		-G \"Ninja Multi-Config\" \
 		-DCMAKE_CONFIGURATION_TYPES=\"Release\" \
 		-DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
-		-DCMAKE_TOOLCHAIN_FILE=\$$(realpath $(BUILD_DIR))/llvm/conan_toolchain.cmake \
+		-DCMAKE_TOOLCHAIN_FILE=\"conan_toolchain.cmake\" \
 	"
 	docker exec $(DOCKER_CONTAINER_NAME) \
 		bash -c " \
