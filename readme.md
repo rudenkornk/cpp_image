@@ -7,12 +7,12 @@ Docker image for C++ CI.
 
 ## Build
 ```bash
-make rudenkornk/docker_cpp
+make image
 ```
 Also, you can use Docker Hub image as cache source:
 ```bash
 docker pull rudenkornk/docker_cpp:latest
-DOCKER_CACHE_FROM=rudenkornk/docker_cpp:latest make rudenkornk/docker_cpp
+DOCKER_CACHE_FROM=rudenkornk/docker_cpp:latest make image
 ```
 
 
@@ -23,7 +23,7 @@ make check
 
 ## Run
 ```bash
-make docker_cpp_container
+make container
 
 docker attach docker_cpp_container
 # OR

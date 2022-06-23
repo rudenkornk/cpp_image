@@ -90,7 +90,7 @@ jobs:
         docker manifest inspect $REMOTE_IMAGE_LATEST &> /dev/null && \
         docker pull $REMOTE_IMAGE_LATEST || echo "Cache was not loaded"
     - name: Build
-      run: make $IMAGE_NAME
+      run: make image
     - name: Test
       run: make check
     - name: Clean

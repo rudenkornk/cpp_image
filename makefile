@@ -28,8 +28,11 @@ DOCKER_DEPS += config_system.sh
 
 HELLO_WORLD_DEPS := $(shell find $(TESTS_DIR) -type f,l)
 
-.PHONY: $(DOCKER_IMAGE_NAME)
-$(DOCKER_IMAGE_NAME): $(DOCKER_IMAGE)
+.PHONY: image
+image: $(DOCKER_IMAGE)
+
+.PHONY: container
+container: $(DOCKER_CONTAINER)
 
 .PHONY: docker_image_name
 docker_image_name:
@@ -58,9 +61,6 @@ $(DOCKER_IMAGE): $(DOCKER_DEPS) $(DOCKER_IMAGE_CREATE_STATUS)
 		--build-arg BUILD_DATE="$(BUILD_DATE)" \
 		--tag $(DOCKER_IMAGE_TAG) .
 	mkdir --parents $(BUILD_DIR) && touch $@
-
-.PHONY: $(DOCKER_CONTAINER_NAME)
-$(DOCKER_CONTAINER_NAME): $(DOCKER_CONTAINER)
 
 DOCKER_CONTAINER_ID := $(shell $(IF_DOCKERD_UP) && docker container ls --quiet --all --filter name=^/$(DOCKER_CONTAINER_NAME)$)
 DOCKER_CONTAINER_STATE := $(shell $(IF_DOCKERD_UP) && docker container ls --format {{.State}} --all --filter name=^/$(DOCKER_CONTAINER_NAME)$)
