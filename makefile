@@ -50,11 +50,11 @@ IF_DOCKERD_UP := command -v docker &> /dev/null && pidof dockerd &> /dev/null
 
 DOCKER_IMAGE_ID != $(IF_DOCKERD_UP) && docker images --quiet $(DOCKER_IMAGE_TAG)
 DOCKER_IMAGE_CREATE_STATUS != [[ -z "$(DOCKER_IMAGE_ID)" ]] && echo "$(DOCKER_IMAGE)_not_created"
-DOCKER_CACHE_FROM_COMMAND != [[ ! -z "$(DOCKER_CACHE_FROM)" ]] && echo "--cache-from $(DOCKER_CACHE_FROM)"
+DOCKER_CACHE_FROM_OPTION != [[ ! -z "$(DOCKER_CACHE_FROM)" ]] && echo "--cache-from $(DOCKER_CACHE_FROM)"
 .PHONY: $(DOCKER_IMAGE)_not_created
 $(DOCKER_IMAGE): $(DOCKER_DEPS) $(DOCKER_IMAGE_CREATE_STATUS)
 	docker build \
-		$(DOCKER_CACHE_FROM_COMMAND) \
+		$(DOCKER_CACHE_FROM_OPTION) \
 		--build-arg IMAGE_NAME="$(DOCKER_IMAGE_NAME)" \
 		--build-arg VERSION="$(DOCKER_IMAGE_VERSION)" \
 		--build-arg VCS_REF="$(VCS_REF)" \
