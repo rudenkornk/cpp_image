@@ -69,7 +69,7 @@ jobs:
 ```
 See also https://github.com/rudenkornk/docker_ci#2-use-it-in-github-actions
 
-### 3. Use scripts from this repository to setup your own system:
+### 3. Use scripts from this repository to setup your own system
 
 ```bash
 # Ask system administrator to install necessary packages
