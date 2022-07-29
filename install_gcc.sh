@@ -17,6 +17,8 @@ DEBIAN_FRONTEND=noninteractive apt-get install --yes --no-install-recommends \
   gcc-$GCC_VERSION \
   g++-$GCC_VERSION \
 
+rm -rf /var/lib/apt/lists/*
+
 update-alternatives \
   --install /usr/bin/gcc gcc /usr/bin/gcc-$GCC_VERSION $GCC_VERSION"0" \
   --slave /usr/bin/g++ g++ /usr/bin/g++-$GCC_VERSION \

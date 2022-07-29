@@ -15,3 +15,4 @@ chmod +x /usr/bin/yq
 
 pip install conan==1.49.0
 
+rm -rf /var/lib/apt/lists/*
