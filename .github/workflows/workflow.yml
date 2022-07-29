@@ -101,6 +101,13 @@ jobs:
       run: make check
     - name: Clean
       run: make clean
+    - name: Show machine info
+      run: |
+        id
+        df -h
+        docker image ls
+        docker container ls
+        docker container ls --all
     - name: "[DEPLOY] Check there is not already such tag in registry"
       if: env.WILL_BE_DEPLOYED == 'true'
       run: docker manifest inspect "$REMOTE_IMAGE_TAG" &> /dev/null && exit 1 || exit 0
