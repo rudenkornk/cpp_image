@@ -26,6 +26,8 @@ DEBAN_FRONTEND=noninteractive apt-get install --yes --no-install-recommends \
   lldb-$LLVM_VERSION \
   llvm-$LLVM_VERSION-dev \
 
+rm -rf /var/lib/apt/lists/*
+
 update-alternatives \
   --install /usr/bin/clang clang /usr/bin/clang-$LLVM_VERSION $LLVM_VERSION"0" \
   --slave /usr/bin/FileCheck FileCheck /usr/bin/FileCheck-$LLVM_VERSION \

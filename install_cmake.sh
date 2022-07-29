@@ -20,3 +20,4 @@ chmod +x $CMAKE_SCRIPT
 ./$CMAKE_SCRIPT --skip-licence --exclude-subdir --prefix=/usr
 rm $CMAKE_SCRIPT
 
+rm -rf /var/lib/apt/lists/*
