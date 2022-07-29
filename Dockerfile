@@ -1,4 +1,4 @@
-FROM rudenkornk/docker_ci:1.0.0
+FROM rudenkornk/docker_ci:1.1.0
 
 # First, ask system administrator to install necessary packages
 USER root
