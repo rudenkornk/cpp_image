@@ -38,7 +38,7 @@ jobs:
       run: |
         COMMIT_MSG=$(git log --format=%B -n 1)
         COMMIT_MSG_HAS_DEPLOY=$( \
-          echo $COMMIT_MSG | \
+          echo "$COMMIT_MSG" | \
           grep "\[DEPLOY\]" -q && echo true || echo false \
         )
         IS_DEPLOY=$( \
@@ -60,24 +60,30 @@ jobs:
             ($IS_DEPLOY == 'true') \
           ]] && echo true || echo false
         )
-        echo "IS_DEPLOY=$IS_DEPLOY" >> $GITHUB_ENV
-        echo "WILL_BE_DEPLOYED=$WILL_BE_DEPLOYED" >> $GITHUB_ENV
+        {
+          echo "IS_DEPLOY=$IS_DEPLOY"
+          echo "WILL_BE_DEPLOYED=$WILL_BE_DEPLOYED"
+        } >> "$GITHUB_ENV"
 
         IMAGE_NAME=$(make --silent docker_image_name)
         IMAGE_TAG=$(make --silent docker_image_tag)
         IMAGE_VERSION=$(make --silent docker_image_version)
-        echo "IMAGE_NAME=$IMAGE_NAME" >> $GITHUB_ENV
-        echo "IMAGE_TAG=$IMAGE_TAG" >> $GITHUB_ENV
-        echo "IMAGE_VERSION=$IMAGE_VERSION" >> $GITHUB_ENV
+        {
+          echo "IMAGE_NAME=$IMAGE_NAME"
+          echo "IMAGE_TAG=$IMAGE_TAG"
+          echo "IMAGE_VERSION=$IMAGE_VERSION"
+        } >> "$GITHUB_ENV"
 
         REMOTE_IMAGE_NAME=$registry$IMAGE_NAME
         REMOTE_IMAGE_TAG=$registry$IMAGE_TAG
         REMOTE_IMAGE_LATEST=$REMOTE_IMAGE_NAME":latest"
-        echo "REMOTE_IMAGE_NAME=$REMOTE_IMAGE_NAME" >> $GITHUB_ENV
-        echo "REMOTE_IMAGE_TAG=$REMOTE_IMAGE_TAG" >> $GITHUB_ENV
-        echo "REMOTE_IMAGE_LATEST=$REMOTE_IMAGE_LATEST" >> $GITHUB_ENV
+        {
+          echo "REMOTE_IMAGE_NAME=$REMOTE_IMAGE_NAME"
+          echo "REMOTE_IMAGE_TAG=$REMOTE_IMAGE_TAG"
+          echo "REMOTE_IMAGE_LATEST=$REMOTE_IMAGE_LATEST"
 
-        echo "DOCKER_CACHE_FROM=$REMOTE_IMAGE_LATEST" >> $GITHUB_ENV
+          echo "DOCKER_CACHE_FROM=$REMOTE_IMAGE_LATEST"
+        } >> "$GITHUB_ENV"
     - name: "Login to image registry"
       uses: docker/login-action@v1
       with:
@@ -87,8 +93,8 @@ jobs:
     - name: Download cache from registry
       # Here we assume that latest release have common layers that should speed up our build
       run: |
-        docker manifest inspect $REMOTE_IMAGE_LATEST &> /dev/null && \
-        docker pull $REMOTE_IMAGE_LATEST || echo "Cache was not loaded"
+        docker manifest inspect "$REMOTE_IMAGE_LATEST" &> /dev/null && \
+        docker pull "$REMOTE_IMAGE_LATEST" || echo "Cache was not loaded"
     - name: Build
       run: make image
     - name: Test
@@ -97,14 +103,14 @@ jobs:
       run: make clean
     - name: "[DEPLOY] Check there is not already such tag in registry"
       if: env.WILL_BE_DEPLOYED == 'true'
-      run: $(docker manifest inspect $REMOTE_IMAGE_TAG &> /dev/null) && exit 1 || exit 0
+      run: docker manifest inspect "$REMOTE_IMAGE_TAG" &> /dev/null && exit 1 || exit 0
     - name: "[DEPLOY] Push image to registry"
       if: env.IS_DEPLOY == 'true'
       run: |
-        docker image tag $IMAGE_TAG $REMOTE_IMAGE_TAG
-        docker image tag $IMAGE_TAG $REMOTE_IMAGE_LATEST
-        docker image push $REMOTE_IMAGE_TAG
-        docker image push $REMOTE_IMAGE_LATEST
+        docker image tag "$IMAGE_TAG" "$REMOTE_IMAGE_TAG"
+        docker image tag "$IMAGE_TAG" "$REMOTE_IMAGE_LATEST"
+        docker image push "$REMOTE_IMAGE_TAG"
+        docker image push "$REMOTE_IMAGE_LATEST"
     - name: "[DEPLOY] Tag commit"
       if: env.IS_DEPLOY == 'true'
       uses: tvdias/github-tagger@v0.0.1
