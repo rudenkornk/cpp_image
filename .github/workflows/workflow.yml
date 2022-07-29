@@ -30,10 +30,7 @@ jobs:
         docker container ls
         docker container ls --all
     - name: Install prerequisites
-      run: |
-        sudo apt-get install \
-          moreutils \
-
+      run: sudo apt-get install moreutils
     - name: Set environment
       run: |
         COMMIT_MSG=$(git log --format=%B -n 1)
@@ -51,7 +48,7 @@ jobs:
              '${{ github.event_name }}' == 'workflow_dispatch' && \
              '${{ github.event.inputs.deploy }}' == 'true' \
             ) \
-          ]] && echo true || echo false
+          ]] && echo true || echo false \
         )
         WILL_BE_DEPLOYED=$( \
           [[ \
