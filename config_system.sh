@@ -15,6 +15,8 @@ DEBAN_FRONTEND=noninteractive apt-get install --yes --no-install-recommends \
   valgrind \
   vim \
 
+rm -rf /var/lib/apt/lists/*
+
 pip install lit==14.0.3
 pip install gcovr
 pip install pathlib
