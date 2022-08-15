@@ -41,7 +41,7 @@ LABEL org.opencontainers.image.authors="Nikita Rudenko"
 LABEL org.opencontainers.image.vendor="Nikita Rudenko"
 LABEL org.opencontainers.image.licenses="MIT"
 LABEL org.opencontainers.image.title="Docker image for C++ CI"
-LABEL org.opencontainers.image.base.name="rudenkornk/docker_ci:1.0.0"
+LABEL org.opencontainers.image.base.name="rudenkornk/docker_ci:1.1.0"
 
 ARG IMAGE_NAME
 LABEL org.opencontainers.image.ref.name="${IMAGE_NAME}"
