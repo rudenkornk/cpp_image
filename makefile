@@ -45,7 +45,7 @@ docker_image_tag:
 docker_image_version:
 	$(info $(DOCKER_IMAGE_VERSION))
 
-IF_DOCKERD_UP := command -v docker &> /dev/null && pidof dockerd &> /dev/null
+IF_DOCKERD_UP := command -v docker &> /dev/null && docker image ls &> /dev/null
 
 DOCKER_IMAGE_ID != $(IF_DOCKERD_UP) && docker images --quiet $(DOCKER_IMAGE_TAG)
 DOCKER_IMAGE_CREATE_STATUS != [[ -z "$(DOCKER_IMAGE_ID)" ]] && echo "$(DOCKER_IMAGE)_not_created"
