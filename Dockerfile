@@ -19,13 +19,14 @@ RUN ./install_python.sh
 COPY install_conan.sh ./
 RUN ./install_conan.sh
 
-COPY conan/ /root/.conan/
-COPY --chown=ci_user conan/ /home/ci_user/.conan/
-COPY config_conan.sh ./
+USER ci_user
+WORKDIR /home/ci_user
+COPY --chown=ci_user conan/ .conan/
+COPY --chown=ci_user config_conan.sh ./
 RUN ./config_conan.sh
-COPY --chown=ci_user config_conan.sh /home/ci_user/
-RUN sudo --login --user ci_user /home/ci_user/config_conan.sh
 
+USER root
+WORKDIR /root
 COPY config_system.sh ./
 RUN ./config_system.sh
 
@@ -34,6 +35,7 @@ COPY --chown=ci_user \
   readme.md \
   /home/ci_user/
 
+USER ci_user
 WORKDIR /home/repo
 
 # See https://github.com/opencontainers/image-spec/blob/main/annotations.md
