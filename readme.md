@@ -38,7 +38,7 @@ make clean
 ```
 
 ## Different use cases for this repository
-This repository supports three different scenarios
+This repository supports two different scenarios
 
 ### 1. Use image directly for local testing or CI
 
@@ -54,22 +54,7 @@ Instead of `$(pwd)` use path to your C++ repo.
 It is recommended to mount it into `/home/repo`.
 Be careful if mounting inside `ci_user`'s home directory (`/home/ci_user`): entrypoint script will change rights to what is written in `CI_UID` and `CI_GID` vars of everything inside home directory.
 
-### 2. Use it with native GitHub Actions support
-```yaml
-jobs:
-  build:
-    runs-on: "ubuntu-20.04"
-    container:
-      image: rudenkornk/docker_cpp:1.0.0
-    steps:
-    - name: Checkout repository
-      uses: actions/checkout@v3
-    - name: Build
-      run: # some build steps
-```
-See also https://github.com/rudenkornk/docker_ci#2-use-it-in-github-actions
-
-### 3. Use scripts from this repository to setup your own system
+### 2. Use scripts from this repository to setup your own system
 
 ```bash
 # Ask system administrator to install necessary packages
