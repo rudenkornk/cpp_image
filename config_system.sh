@@ -21,6 +21,7 @@ DEBAN_FRONTEND=noninteractive apt-get install --yes --no-install-recommends \
   less \
   lftp \
   libevent-dev \
+  linux-tools-generic \
   make \
   ninja-build \
   openssh-client \
