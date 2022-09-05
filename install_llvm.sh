@@ -8,14 +8,14 @@ set -o xtrace
 LLVM_VERSION=14
 
 apt-get update
-DEBAN_FRONTEND=noninteractive apt-get install --yes --no-install-recommends \
+DEBIAN_FRONTEND=noninteractive apt-get install --yes --no-install-recommends \
   ca-certificates \
   gpg-agent \
   lsb-release \
   software-properties-common \
   wget \
 
-DEBAN_FRONTEND=noninteractive apt-get install --yes --no-install-recommends \
+DEBIAN_FRONTEND=noninteractive apt-get install --yes --no-install-recommends \
   clang-$LLVM_VERSION \
   clang-format-$LLVM_VERSION \
   clang-tidy-$LLVM_VERSION \
