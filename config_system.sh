@@ -27,6 +27,7 @@ DEBAN_FRONTEND=noninteractive apt-get install --yes --no-install-recommends \
   openssh-client \
   pkg-config \
   snap \
+  sshpass \
   tar gzip zip unzip bzip2 p7zip-full p7zip-rar \
   valgrind \
   vim \
