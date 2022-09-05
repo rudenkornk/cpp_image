@@ -21,6 +21,7 @@ rm -rf /var/lib/apt/lists/*
 
 update-alternatives \
   --install /usr/bin/gcc gcc /usr/bin/gcc-$GCC_VERSION $GCC_VERSION"0" \
+  --slave /usr/bin/cc cc /usr/bin/gcc-$GCC_VERSION \
   --slave /usr/bin/g++ g++ /usr/bin/g++-$GCC_VERSION \
   --slave /usr/bin/gcc-ar gcc-ar /usr/bin/gcc-ar-$GCC_VERSION \
   --slave /usr/bin/gcc-nm gcc-nm /usr/bin/gcc-nm-$GCC_VERSION \
