@@ -8,7 +8,7 @@ set -o xtrace
 GCC_VERSION=12
 
 apt-get update
-DEBAN_FRONTEND=noninteractive apt-get install --yes --no-install-recommends \
+DEBIAN_FRONTEND=noninteractive apt-get install --yes --no-install-recommends \
   gpg-agent \
   software-properties-common \
 

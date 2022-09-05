@@ -6,7 +6,7 @@ set -o nounset
 set -o xtrace
 
 apt-get update
-DEBAN_FRONTEND=noninteractive apt-get install --yes --no-install-recommends \
+DEBIAN_FRONTEND=noninteractive apt-get install --yes --no-install-recommends \
   ca-certificates \
   wget \
 
