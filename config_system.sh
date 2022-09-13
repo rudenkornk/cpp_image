@@ -26,6 +26,7 @@ DEBIAN_FRONTEND=noninteractive apt-get install --yes --no-install-recommends \
   ninja-build \
   openssh-client \
   pkg-config \
+  rsync \
   snap \
   sshpass \
   tar gzip zip unzip bzip2 p7zip-full p7zip-rar \
