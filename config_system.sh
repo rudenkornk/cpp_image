@@ -13,7 +13,9 @@ DEBIAN_FRONTEND=noninteractive apt-get install --yes --no-install-recommends \
   ca-certificates \
   ccache \
   curl \
+  device-tree-compiler \
   dos2unix \
+  expect \
   gdb \
   git \
   gnupg \
@@ -21,15 +23,20 @@ DEBIAN_FRONTEND=noninteractive apt-get install --yes --no-install-recommends \
   less \
   lftp \
   libevent-dev \
+  libncurses5 \
+  libtool \
+  libusb-dev \
   linux-tools-generic \
   make \
+  netcat \
   ninja-build \
   openssh-client \
   pkg-config \
   rsync \
   snap \
   sshpass \
-  tar gzip zip unzip bzip2 p7zip-full p7zip-rar \
+  tar gzip zip unzip bzip2 p7zip-full p7zip-rar xz-utils \
+  texinfo \
   valgrind \
   vim \
   wget \
