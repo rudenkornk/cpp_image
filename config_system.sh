@@ -8,6 +8,7 @@ set -o xtrace
 apt-get update
 DEBIAN_FRONTEND=noninteractive apt-get install --yes --no-install-recommends \
   apt-transport-https \
+  automake \
   bash-completion \
   bison \
   ca-certificates \
