@@ -51,5 +51,4 @@ pip install pathlib
 pip install psutil
 pip install pyyaml
 
-git config --global --add safe.directory /home/repo
-sudo --user ci_user git config --global --add safe.directory /home/repo
+git config --system --add safe.directory '*'
