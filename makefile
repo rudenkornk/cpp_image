@@ -5,22 +5,26 @@ BUILD_DIR ?= build
 TESTS_DIR := tests
 VCS_REF != git rev-parse HEAD
 BUILD_DATE != date --rfc-3339=date
-KEEP_CI_USER_SUDO ?= false
-DOCKER_IMAGE_VERSION := 1.0.11
+KEEP_SUDO ?= false
+DOCKER_IMAGE_VERSION := 1.1.0
 DOCKER_IMAGE_NAME := rudenkornk/$(PROJECT_NAME)
 DOCKER_IMAGE_TAG := $(DOCKER_IMAGE_NAME):$(DOCKER_IMAGE_VERSION)
 DOCKER_CACHE_FROM ?=
 DOCKER_CONTAINER_NAME := $(PROJECT_NAME)_container
+USER_ID ?=
+USER_ID != [[ -z "$(USER_ID)" ]] && echo $$(id --user) || echo "$(USER_ID)"
+USER_NAME ?=
+USER_NAME != [[ -z "$(USER_NAME)" ]] && echo $$(id --user --name) || echo "$(USER_NAME)"
 
 DOCKER_DEPS :=
 DOCKER_DEPS += Dockerfile
+DOCKER_DEPS += entrypoint.sh
 DOCKER_DEPS += install_gcc.sh
 DOCKER_DEPS += install_llvm.sh
 DOCKER_DEPS += install_cmake.sh
 DOCKER_DEPS += install_python.sh
 DOCKER_DEPS += install_conan.sh
 DOCKER_DEPS += $(shell find conan -type f,l)
-DOCKER_DEPS += config_conan.sh
 DOCKER_DEPS += config_system.sh
 
 HELLO_WORLD_DEPS != find $(TESTS_DIR) -type f,l
@@ -68,23 +72,23 @@ ifneq ($(DOCKER_CONTAINER_ID),)
 	docker container rename $(DOCKER_CONTAINER_NAME) $(DOCKER_CONTAINER_NAME)_$(DOCKER_CONTAINER_ID)
 endif
 	docker run --interactive --tty --detach \
-		--user ci_user \
-		--env KEEP_CI_USER_SUDO=$(KEEP_CI_USER_SUDO) \
-		--env CI_UID="$$(id --user)" --env CI_GID="$$(id --group)" \
+		--env KEEP_SUDO=$(KEEP_SUDO) \
+		--env USER_ID="$(USER_ID)" --env USER_NAME="$(USER_NAME)" \
 		--env "TERM=xterm-256color" \
 		--name $(DOCKER_CONTAINER_NAME) \
-		--mount type=bind,source="$$(pwd)",target=/home/repo \
+		--mount type=bind,source="$$(pwd)",target="$$(pwd)" \
+		--workdir "$$(pwd)" \
 		$(DOCKER_IMAGE_TAG)
 	sleep 1
 	mkdir --parents $(BUILD_DIR) && touch $@
 
 
-$(BUILD_DIR)/gcc/hello_world: $(BUILD_DIR)/container $(HELLO_WORLD_DEPS)
-	docker exec $(DOCKER_CONTAINER_NAME) \
+$(BUILD_DIR)/gcc/Release/hello_world: $(BUILD_DIR)/container $(HELLO_WORLD_DEPS)
+	docker exec --user $(USER_NAME) $(DOCKER_CONTAINER_NAME) \
 		bash -c "gcc --version" | grep --perl-regexp --quiet "12\.\d+\.\d+"
-	docker exec $(DOCKER_CONTAINER_NAME) \
+	docker exec --user $(USER_NAME) $(DOCKER_CONTAINER_NAME) \
 		bash -c "g++ --version" | grep --perl-regexp --quiet "12\.\d+\.\d+"
-	docker exec $(DOCKER_CONTAINER_NAME) \
+	docker exec --user $(USER_NAME) $(DOCKER_CONTAINER_NAME) \
 		bash -c " \
 		ASAN=ON \
 		UBSAN=ON \
@@ -95,7 +99,7 @@ $(BUILD_DIR)/gcc/hello_world: $(BUILD_DIR)/container $(HELLO_WORLD_DEPS)
 		--build missing \
 		--install-folder $(BUILD_DIR)/gcc $(TESTS_DIR) \
 		"
-	docker exec $(DOCKER_CONTAINER_NAME) \
+	docker exec --user $(USER_NAME) $(DOCKER_CONTAINER_NAME) \
 		bash -c " \
 		cmake \
 		-S $(TESTS_DIR) \
@@ -105,26 +109,26 @@ $(BUILD_DIR)/gcc/hello_world: $(BUILD_DIR)/container $(HELLO_WORLD_DEPS)
 		-DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
 		-DCMAKE_TOOLCHAIN_FILE=\"conan_toolchain.cmake\" \
 	"
-	docker exec $(DOCKER_CONTAINER_NAME) \
+	docker exec --user $(USER_NAME) $(DOCKER_CONTAINER_NAME) \
 		bash -c " \
 		cmake \
 		--build $(BUILD_DIR)/gcc \
 		--config Release \
 		--verbose \
 	"
-	docker exec $(DOCKER_CONTAINER_NAME) \
+	docker exec --user $(USER_NAME) $(DOCKER_CONTAINER_NAME) \
 		bash -c "./$(BUILD_DIR)/gcc/Release/hello_world" | grep --quiet "Hello world!"
 	grep --quiet "g++" $(BUILD_DIR)/gcc/compile_commands.json
 	grep --quiet "\-fsanitize=address" $(BUILD_DIR)/gcc/compile_commands.json
 	grep --quiet "\-fsanitize=undefined" $(BUILD_DIR)/gcc/compile_commands.json
 	touch $@
 
-$(BUILD_DIR)/llvm/hello_world: $(BUILD_DIR)/container $(HELLO_WORLD_DEPS)
-	docker exec $(DOCKER_CONTAINER_NAME) \
+$(BUILD_DIR)/llvm/Release/hello_world: $(BUILD_DIR)/container $(HELLO_WORLD_DEPS)
+	docker exec --user $(USER_NAME) $(DOCKER_CONTAINER_NAME) \
 		bash -c "clang --version" | grep --perl-regexp --quiet "14\.\d+\.\d+"
-	docker exec $(DOCKER_CONTAINER_NAME) \
+	docker exec --user $(USER_NAME) $(DOCKER_CONTAINER_NAME) \
 		bash -c "clang++ --version" | grep --perl-regexp --quiet "14\.\d+\.\d+"
-	docker exec $(DOCKER_CONTAINER_NAME) \
+	docker exec --user $(USER_NAME) $(DOCKER_CONTAINER_NAME) \
 		bash -c " \
 		ASAN=ON \
 		UBSAN=ON \
@@ -135,7 +139,7 @@ $(BUILD_DIR)/llvm/hello_world: $(BUILD_DIR)/container $(HELLO_WORLD_DEPS)
 		--build missing \
 		--install-folder $(BUILD_DIR)/llvm $(TESTS_DIR) \
 		"
-	docker exec $(DOCKER_CONTAINER_NAME) \
+	docker exec --user $(USER_NAME) $(DOCKER_CONTAINER_NAME) \
 		bash -c " \
 		cmake \
 		-S $(TESTS_DIR) \
@@ -145,37 +149,37 @@ $(BUILD_DIR)/llvm/hello_world: $(BUILD_DIR)/container $(HELLO_WORLD_DEPS)
 		-DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
 		-DCMAKE_TOOLCHAIN_FILE=\"conan_toolchain.cmake\" \
 	"
-	docker exec $(DOCKER_CONTAINER_NAME) \
+	docker exec --user $(USER_NAME) $(DOCKER_CONTAINER_NAME) \
 		bash -c " \
 		cmake \
 		--build $(BUILD_DIR)/llvm \
 		--config Release \
 		--verbose \
 	"
-	docker exec $(DOCKER_CONTAINER_NAME) \
+	docker exec --user $(USER_NAME) $(DOCKER_CONTAINER_NAME) \
 		bash -c "./$(BUILD_DIR)/llvm/Release/hello_world" | grep --quiet "Hello world!"
 	grep --quiet "clang++" $(BUILD_DIR)/llvm/compile_commands.json
 	grep --quiet "\-fsanitize=address" $(BUILD_DIR)/llvm/compile_commands.json
 	grep --quiet "\-fsanitize=undefined" $(BUILD_DIR)/llvm/compile_commands.json
 	touch $@
 
-$(BUILD_DIR)/valgrind_test: $(BUILD_DIR)/gcc/hello_world $(BUILD_DIR)/llvm/hello_world
-	docker exec $(DOCKER_CONTAINER_NAME) \
+$(BUILD_DIR)/valgrind_test: $(BUILD_DIR)/gcc/Release/hello_world $(BUILD_DIR)/llvm/Release/hello_world
+	docker exec --user $(USER_NAME) $(DOCKER_CONTAINER_NAME) \
 		bash -c "valgrind --version"
 	touch $@
 
-$(BUILD_DIR)/gdb_test: $(BUILD_DIR)/gcc/hello_world $(BUILD_DIR)/llvm/hello_world
-	docker exec $(DOCKER_CONTAINER_NAME) \
+$(BUILD_DIR)/gdb_test: $(BUILD_DIR)/gcc/Release/hello_world $(BUILD_DIR)/llvm/Release/hello_world
+	docker exec --user $(USER_NAME) $(DOCKER_CONTAINER_NAME) \
 		bash -c " \
-		gdb -ex run -ex quit ./build/gcc/hello_world && \
-		gdb -ex run -ex quit ./build/llvm/hello_world && \
+		gdb -ex run -ex quit ./build/gcc/Release/hello_world && \
+		gdb -ex run -ex quit ./build/llvm/Release/hello_world && \
 		: "
 	touch $@
 
-$(BUILD_DIR)/clang_tidy_test: $(BUILD_DIR)/gcc/hello_world $(BUILD_DIR)/llvm/hello_world
-	docker exec $(DOCKER_CONTAINER_NAME) \
+$(BUILD_DIR)/clang_tidy_test: $(BUILD_DIR)/gcc/Release/hello_world $(BUILD_DIR)/llvm/Release/hello_world
+	docker exec --user $(USER_NAME) $(DOCKER_CONTAINER_NAME) \
 		bash -c "clang-tidy --version" | grep --perl-regexp --quiet "14\.\d+\.\d+"
-	docker exec $(DOCKER_CONTAINER_NAME) \
+	docker exec --user $(USER_NAME) $(DOCKER_CONTAINER_NAME) \
 		bash -c " \
 		clang-tidy -p $(BUILD_DIR)/gcc $(TESTS_DIR)/hello_world.cpp && \
 		clang-tidy -p $(BUILD_DIR)/llvm $(TESTS_DIR)/hello_world.cpp && \
@@ -183,24 +187,24 @@ $(BUILD_DIR)/clang_tidy_test: $(BUILD_DIR)/gcc/hello_world $(BUILD_DIR)/llvm/hel
 	touch $@
 
 $(BUILD_DIR)/clang_format_test: $(BUILD_DIR)/container
-	docker exec $(DOCKER_CONTAINER_NAME) \
+	docker exec --user $(USER_NAME) $(DOCKER_CONTAINER_NAME) \
 		bash -c "clang-format --version" | grep --perl-regexp --quiet "14\.\d+\.\d+"
 	touch $@
 
 $(BUILD_DIR)/lit_test: $(BUILD_DIR)/container
-	docker exec $(DOCKER_CONTAINER_NAME) \
+	docker exec --user $(USER_NAME) $(DOCKER_CONTAINER_NAME) \
 		bash -c "lit --version" | grep --perl-regexp --quiet "14\.\d+\.\d+"
 	touch $@
 
 $(BUILD_DIR)/filecheck_test: $(BUILD_DIR)/container
-	docker exec $(DOCKER_CONTAINER_NAME) \
+	docker exec --user $(USER_NAME) $(DOCKER_CONTAINER_NAME) \
 		bash -c "FileCheck --version" | grep --perl-regexp --quiet "14\.\d+\.\d+"
 	touch $@
 
 .PHONY: check
 check: \
-	$(BUILD_DIR)/gcc/hello_world \
-	$(BUILD_DIR)/llvm/hello_world \
+	$(BUILD_DIR)/gcc/Release/hello_world \
+	$(BUILD_DIR)/llvm/Release/hello_world \
 	$(BUILD_DIR)/clang_tidy_test \
 	$(BUILD_DIR)/gdb_test \
 	$(BUILD_DIR)/valgrind_test \
