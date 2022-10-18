@@ -1,8 +1,8 @@
-FROM rudenkornk/docker_ci:1.1.0
+FROM ubuntu:22.04
 
 # First, ask system administrator to install necessary packages
 USER root
-WORKDIR /root
+WORKDIR /etc/configs
 
 COPY install_gcc.sh ./
 RUN ./install_gcc.sh
@@ -19,31 +19,26 @@ RUN ./install_python.sh
 COPY install_conan.sh ./
 RUN ./install_conan.sh
 
-USER ci_user
-WORKDIR /home/ci_user
-COPY --chown=ci_user conan/ .conan/
-COPY --chown=ci_user config_conan.sh ./
-RUN ./config_conan.sh
+COPY conan/ /root/.conan
+RUN /root/.conan/config_conan.sh
 
-USER root
-WORKDIR /root
 COPY config_system.sh ./
 RUN ./config_system.sh
 
-COPY --chown=ci_user \
+COPY \
   license.md \
-  readme.md \
-  /home/ci_user/
+  entrypoint.sh \
+  ./
 
-USER ci_user
-WORKDIR /home/repo
+WORKDIR /root
+ENTRYPOINT ["/etc/configs/entrypoint.sh"]
 
 # See https://github.com/opencontainers/image-spec/blob/main/annotations.md
 LABEL org.opencontainers.image.authors="Nikita Rudenko"
 LABEL org.opencontainers.image.vendor="Nikita Rudenko"
 LABEL org.opencontainers.image.licenses="MIT"
 LABEL org.opencontainers.image.title="Docker image for C++ CI"
-LABEL org.opencontainers.image.base.name="rudenkornk/docker_ci:1.1.0"
+LABEL org.opencontainers.image.base.name="ubuntu:22.04"
 
 ARG IMAGE_NAME
 LABEL org.opencontainers.image.ref.name="${IMAGE_NAME}"

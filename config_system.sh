@@ -48,6 +48,7 @@ DEBIAN_FRONTEND=noninteractive apt-get install --yes --no-install-recommends \
   rsync \
   snap \
   sshpass \
+  sudo \
   tar gzip zip unzip bzip2 p7zip-full p7zip-rar xz-utils \
   texinfo \
   u-boot-qemu \
@@ -65,3 +66,4 @@ pip install psutil
 pip install pyyaml
 
 git config --system --add safe.directory '*'
+usermod --append --groups sudo root

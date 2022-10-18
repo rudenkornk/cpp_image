@@ -44,15 +44,12 @@ This repository supports two different scenarios
 
 ```bash
 docker run --interactive --tty \
-  --user ci_user \
-  --env CI_UID="$(id --user)" --env CI_GID="$(id --group)" \
-  --mount type=bind,source="$(pwd)",target=/home/repo \
+  --env USER_ID="$(id --user)" --env USER_NAME="$(id --user --name)" \
+  --mount type=bind,source="$(pwd)",target="$(pwd)" \
+  --workdir "$(pwd)" \
   rudenkornk/docker_cpp:latest
 ```
-
 Instead of `$(pwd)` use path to your C++ repo.
-It is recommended to mount it into `/home/repo`.
-Be careful if mounting inside `ci_user`'s home directory (`/home/ci_user`): entrypoint script will change rights to what is written in `CI_UID` and `CI_GID` vars of everything inside home directory.
 
 ### 2. Use scripts from this repository to setup your own system
 
@@ -67,6 +64,6 @@ Be careful if mounting inside `ci_user`'s home directory (`/home/ci_user`): entr
 
 # Config normal user
 cp --recursive conan ~/.conan
-./config_conan.sh
+~/.conan/config_conan.sh
 ```
 
