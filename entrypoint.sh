@@ -22,6 +22,9 @@ if [[ "$USER_ID" != "0" ]]; then
 
   echo "Configuring user..."
   USER_HOME=$(eval echo ~"$USER_NAME")
+  chown "$USER_NAME" "$USER_HOME"
+  chgrp "$USER_NAME" "$USER_HOME"
+
   cp --recursive /root/.conan "$USER_HOME"
   chown --recursive "$USER_NAME" "$USER_HOME/.conan"
   chgrp --recursive "$USER_NAME" "$USER_HOME/.conan"
