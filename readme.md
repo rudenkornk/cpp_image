@@ -27,7 +27,7 @@ make container
 
 docker attach docker_cpp_container
 # OR
-docker exec -it docker_cpp_container bash -c "source ~/.profile && bash"
+docker exec -it --user $(id --user) docker_cpp_container bash
 ```
 
 ## Clean
