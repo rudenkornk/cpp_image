@@ -26,6 +26,7 @@ DEBIAN_FRONTEND=noninteractive apt-get install --yes --no-install-recommends \
   less \
   lftp \
   libevent-dev \
+  libexpat-dev \
   libfl-dev \
   libftdi-dev \
   libgmp-dev \
