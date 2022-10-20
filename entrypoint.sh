@@ -19,9 +19,12 @@ if [[ "$USER_ID" != "0" ]]; then
   adduser --uid "$USER_ID" --disabled-password --gecos "" "$USER_NAME"
   usermod --append --groups sudo "$USER_NAME"
   echo '%sudo ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers
+fi
 
+USER_HOME=$(eval echo ~"$USER_NAME")
+cd "$USER_HOME"
+if [[ "$USER_ID" != "0" ]]; then
   echo "Configuring user..."
-  USER_HOME=$(eval echo ~"$USER_NAME")
   chown "$USER_NAME" "$USER_HOME"
   chgrp "$USER_NAME" "$USER_HOME"
 
@@ -36,8 +39,6 @@ if [[ "$KEEP_SUDO" != "true" ]]; then
   deluser --quiet "$USER_NAME" sudo
 fi
 
-USER_HOME=$(eval echo ~"$USER_NAME")
-cd "$USER_HOME"
 if [[ $# -gt 0 ]]; then
   exec sudo --user="$USER_NAME" -- bash -c "$@"
 else
