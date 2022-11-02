@@ -7,6 +7,9 @@ WORKDIR /etc/configs
 COPY install_gcc.sh ./
 RUN ./install_gcc.sh
 
+COPY install_mingw.sh ./
+RUN ./install_mingw.sh
+
 COPY install_llvm.sh ./
 RUN ./install_llvm.sh
 
