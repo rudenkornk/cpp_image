@@ -33,6 +33,7 @@ DEBIAN_FRONTEND=noninteractive apt-get install --yes --no-install-recommends \
   libhidapi-dev \
   libncurses5 \
   libtool \
+  libudev-dev \
   libusb-1.0-0-dev \
   linux-tools-generic \
   lsb-release \
