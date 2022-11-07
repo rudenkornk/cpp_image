@@ -64,6 +64,7 @@ rm -rf /var/lib/apt/lists/*
 pip install lit==14.0.3
 pip install gcovr
 pip install pathlib
+pip install pexpect
 pip install psutil
 pip install pyyaml
 
