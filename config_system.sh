@@ -19,6 +19,7 @@ DEBIAN_FRONTEND=noninteractive apt-get install --yes --no-install-recommends \
   expat \
   expect \
   flex \
+  gawk \
   gdb \
   git \
   gnupg \
