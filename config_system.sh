@@ -29,14 +29,11 @@ DEBIAN_FRONTEND=noninteractive apt-get install --yes --no-install-recommends \
   libevent-dev \
   libexpat-dev \
   libfl-dev \
-  libftdi-dev \
   libglib2.0-dev \
   libgmp-dev \
-  libhidapi-dev \
   libncurses5 \
   libtool \
   libudev-dev \
-  libusb-1.0-0-dev \
   linux-tools-generic \
   lsb-release \
   make \
