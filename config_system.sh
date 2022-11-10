@@ -30,7 +30,7 @@ DEBIAN_FRONTEND=noninteractive apt-get install --yes --no-install-recommends \
   libexpat-dev \
   libfl-dev \
   libftdi-dev \
-	libglib2.0-dev \
+  libglib2.0-dev \
   libgmp-dev \
   libhidapi-dev \
   libncurses5 \
