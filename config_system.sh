@@ -66,6 +66,7 @@ pip install pathlib
 pip install pexpect
 pip install psutil
 pip install pyyaml
+pip install gitpython
 
 git config --system --add safe.directory '*'
 usermod --append --groups sudo root
