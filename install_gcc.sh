@@ -7,17 +7,11 @@ set -o xtrace
 
 GCC_VERSION=12
 
-apt-get update
-DEBIAN_FRONTEND=noninteractive apt-get install --yes --no-install-recommends \
-  gpg-agent \
-  software-properties-common \
-
 add-apt-repository ppa:ubuntu-toolchain-r/test --yes
+apt-get update
 DEBIAN_FRONTEND=noninteractive apt-get install --yes --no-install-recommends \
   gcc-$GCC_VERSION \
   g++-$GCC_VERSION \
-
-rm -rf /var/lib/apt/lists/*
 
 update-alternatives \
   --install /usr/bin/gcc gcc /usr/bin/gcc-$GCC_VERSION $GCC_VERSION"0" \
@@ -33,4 +27,3 @@ update-alternatives \
 
 update-alternatives \
   --install /usr/bin/cpp cpp /usr/bin/cpp-$GCC_VERSION $GCC_VERSION"0" \
-
