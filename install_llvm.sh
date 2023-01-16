@@ -5,28 +5,34 @@ set -o pipefail
 set -o nounset
 set -o xtrace
 
-LLVM_VERSION=14
+LLVM_VERSION=15
+
+DISTRO=$(lsb_release --codename --short)
+ARCH=$(dpkg --print-architecture)
+PUBKEY=/etc/apt/trusted.gpg.d/llvm.asc
+curl -fsSL https://apt.llvm.org/llvm-snapshot.gpg.key > $PUBKEY
+echo "deb [arch=$ARCH signed-by=$PUBKEY] http://apt.llvm.org/$DISTRO/ llvm-toolchain-$DISTRO-$LLVM_VERSION main" > /etc/apt/sources.list.d/llvm.list
 
 apt-get update
-DEBIAN_FRONTEND=noninteractive apt-get install --yes --no-install-recommends \
-  ca-certificates \
-  gpg-agent \
-  lsb-release \
-  software-properties-common \
-  wget \
-
 DEBIAN_FRONTEND=noninteractive apt-get install --yes --no-install-recommends \
   clang-$LLVM_VERSION \
   clang-format-$LLVM_VERSION \
   clang-tidy-$LLVM_VERSION \
+  clang-tools-$LLVM_VERSION \
   clangd-$LLVM_VERSION \
-  libc++-11-dev \
-  libc++abi-11-dev \
+  libc++-$LLVM_VERSION-dev \
+  libc++abi-$LLVM_VERSION-dev \
+  libclang-$LLVM_VERSION-dev \
+  libclang-common-$LLVM_VERSION-dev \
+  libclang-cpp$LLVM_VERSION-dev \
+  libomp-$LLVM_VERSION-dev \
+  libunwind-$LLVM_VERSION-dev \
+  lld-$LLVM_VERSION \
   lld-$LLVM_VERSION \
   lldb-$LLVM_VERSION \
+  lldb-$LLVM_VERSION \
   llvm-$LLVM_VERSION-dev \
-
-rm -rf /var/lib/apt/lists/*
+  llvm-$LLVM_VERSION-tools \
 
 update-alternatives \
   --install /usr/bin/clang clang /usr/bin/clang-$LLVM_VERSION $LLVM_VERSION"0" \
@@ -162,5 +168,4 @@ update-alternatives \
   --slave /usr/bin/verify-uselistorder verify-uselistorder /usr/bin/verify-uselistorder-$LLVM_VERSION \
   --slave /usr/bin/wasm-ld wasm-ld /usr/bin/wasm-ld-$LLVM_VERSION \
   --slave /usr/bin/yaml-bench yaml-bench /usr/bin/yaml-bench-$LLVM_VERSION \
-  --slave /usr/bin/yaml2obj yaml2obj /usr/bin/yaml2obj-$LLVM_VERSION \
-
+  --slave /usr/bin/yaml2obj yaml2obj /usr/bin/yaml2obj-$LLVM_VERSION

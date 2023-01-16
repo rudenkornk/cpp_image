@@ -1,69 +1,41 @@
-# Docker image for C++ CI
+# Container image for C++ builds
 
-Docker image for C++ CI.
+Container image for reproducible C++ builds targeting local and CI usage.  
 
-[![GitHub Actions Status](https://github.com/rudenkornk/docker_cpp/actions/workflows/workflow.yml/badge.svg)](https://github.com/rudenkornk/docker_cpp/actions)
+[![GitHub Actions Status](https://github.com/rudenkornk/docker_cpp/actions/workflows/workflow.yml/badge.svg)](https://github.com/rudenkornk/cpp_image/actions)
 
+
+## Using the image
+```bash
+# Bootstrap
+podman run --interactive --tty --detach \
+  --env "TERM=xterm-256color" `# colored terminal` \
+  --mount type=bind,source="$(pwd)",target="$(pwd)" `# mount your repo` \
+  --name cpp \
+  --userns keep-id `# keeps your non-root username` \
+  --workdir "$HOME" `# podman sets homedir to the workdir for some readon` \
+  ghcr.io/rudenkornk/cpp_image:2.0.0
+podman exec --user root cpp bash -c "chown $(id --user):$(id --group) $HOME"
+
+# Execute single command
+podman exec --workdir "$(pwd)" cpp bash -c 'your_command'
+
+# Attach to container
+podman exec --workdir "$(pwd)" --interactive --tty cpp bash
+```
 
 ## Build
+**Requirements:** `podman >= 3.4.4`, `GNU Make >= 4.3`  
 ```bash
-make image
+make
 ```
-Also, you can use Docker Hub image as cache source:
-```bash
-docker pull rudenkornk/docker_cpp:latest
-DOCKER_CACHE_FROM=rudenkornk/docker_cpp:latest make image
-```
-
 
 ## Test
 ```bash
 make check
 ```
 
-## Run
-```bash
-make container
-
-docker attach docker_cpp_container
-# OR
-docker exec -it --user $(id --user) docker_cpp_container bash
-```
-
 ## Clean
 ```bash
 make clean
-# Optionally clean entire docker system and remove ALL containers
-./clean_all_docker.sh
 ```
-
-## Different use cases for this repository
-This repository supports two different scenarios
-
-### 1. Use image directly for local testing or CI
-
-```bash
-docker run --interactive --tty \
-  --env USER_ID="$(id --user)" --env USER_NAME="$(id --user --name)" \
-  --mount type=bind,source="$(pwd)",target="$(pwd)" \
-  --workdir "$(pwd)" \
-  rudenkornk/docker_cpp:latest
-```
-Instead of `$(pwd)` use path to your C++ repo.
-
-### 2. Use scripts from this repository to setup your own system
-
-```bash
-# Ask system administrator to install necessary packages
-./install_gcc.sh
-./install_llvm.sh
-./install_cmake.sh
-./install_python.sh
-./install_conan.sh
-./config_system.sh
-
-# Config normal user
-cp --recursive conan ~/.conan
-~/.conan/config_conan.sh
-```
-

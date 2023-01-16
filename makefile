@@ -1,31 +1,27 @@
 SHELL = /usr/bin/env bash
 
-PROJECT_NAME := docker_cpp
-BUILD_DIR ?= build
-TESTS_DIR := tests
-VCS_REF != git rev-parse HEAD
-BUILD_DATE != date --rfc-3339=date
-KEEP_SUDO ?= false
-DOCKER_IMAGE_VERSION := 1.1.12
-DOCKER_IMAGE_NAME := rudenkornk/$(PROJECT_NAME)
-DOCKER_IMAGE_TAG := $(DOCKER_IMAGE_NAME):$(DOCKER_IMAGE_VERSION)
-DOCKER_CACHE_FROM ?=
-DOCKER_CONTAINER_NAME := $(PROJECT_NAME)_container
-USER_ID ?=
-USER_ID != [[ -z "$(USER_ID)" ]] && echo $$(id --user) || echo "$(USER_ID)"
-USER_NAME ?=
-USER_NAME != [[ -z "$(USER_NAME)" ]] && echo $$(id --user --name) || echo "$(USER_NAME)"
+CACHE_FROM ?=
 
-DOCKER_DEPS :=
-DOCKER_DEPS += Dockerfile
-DOCKER_DEPS += entrypoint.sh
-DOCKER_DEPS += install_gcc.sh
-DOCKER_DEPS += install_llvm.sh
-DOCKER_DEPS += install_cmake.sh
-DOCKER_DEPS += install_python.sh
-DOCKER_DEPS += install_conan.sh
-DOCKER_DEPS += $(shell find conan -type f,l)
-DOCKER_DEPS += config_system.sh
+PROJECT_NAME := cpp_image
+BUILD_DIR := __build__
+BUILD_TESTS := $(BUILD_DIR)/tests
+TESTS_DIR := tests
+
+IMAGE_TAG := 2.0.0
+IMAGE_NAME := rudenkornk/$(PROJECT_NAME)
+IMAGE_NAMETAG := $(IMAGE_NAME):$(IMAGE_TAG)
+CONTAINER_NAME := cpp
+VCS_REF != git rev-parse HEAD
+
+DEPS :=
+DEPS += Containerfile
+DEPS += install_basic_utils.sh
+DEPS += install_gcc.sh
+DEPS += install_llvm.sh
+DEPS += install_cmake.sh
+DEPS += install_python.sh
+DEPS += config_system.sh
+DEPS += license.md
 
 HELLO_WORLD_DEPS != find $(TESTS_DIR) -type f,l
 
@@ -35,186 +31,164 @@ image: $(BUILD_DIR)/image
 .PHONY: container
 container: $(BUILD_DIR)/container
 
-.PHONY: docker_image_name
-docker_image_name:
-	$(info $(DOCKER_IMAGE_NAME))
+.PHONY: image_name
+image_name:
+	$(info $(IMAGE_NAME))
 
-.PHONY: docker_image_tag
-docker_image_tag:
-	$(info $(DOCKER_IMAGE_TAG))
+.PHONY: image_nametag
+image_nametag:
+	$(info $(IMAGE_NAMETAG))
 
-.PHONY: docker_image_version
-docker_image_version:
-	$(info $(DOCKER_IMAGE_VERSION))
+.PHONY: image_tag
+image_tag:
+	$(info $(IMAGE_TAG))
 
-IF_DOCKERD_UP := command -v docker &> /dev/null && docker image ls &> /dev/null
+.PHONY: $(BUILD_DIR)/not_ready
 
-DOCKER_IMAGE_ID != $(IF_DOCKERD_UP) && docker images --quiet $(DOCKER_IMAGE_TAG)
-DOCKER_IMAGE_CREATE_STATUS != [[ -z "$(DOCKER_IMAGE_ID)" ]] && echo "image_not_created"
-DOCKER_CACHE_FROM_OPTION != [[ ! -z "$(DOCKER_CACHE_FROM)" ]] && echo "--cache-from $(DOCKER_CACHE_FROM)"
-.PHONY: image_not_created
-$(BUILD_DIR)/image: $(DOCKER_DEPS) $(DOCKER_IMAGE_CREATE_STATUS)
-	docker build \
-		$(DOCKER_CACHE_FROM_OPTION) \
-		--build-arg IMAGE_NAME="$(DOCKER_IMAGE_NAME)" \
-		--build-arg VERSION="$(DOCKER_IMAGE_VERSION)" \
-		--build-arg VCS_REF="$(VCS_REF)" \
-		--build-arg BUILD_DATE="$(BUILD_DATE)" \
-		--tag $(DOCKER_IMAGE_TAG) .
+IMAGE_CREATE_STATUS != podman image exists $(IMAGE_NAMETAG) || echo "$(BUILD_DIR)/not_ready"
+$(BUILD_DIR)/image: $(DEPS) $(IMAGE_CREATE_STATUS)
+	podman build \
+		--cache-from '$(CACHE_FROM)' \
+		--label "org.opencontainers.image.ref.name=$(IMAGE_NAME)" \
+		--label "org.opencontainers.image.revision=$(VCS_REF)" \
+		--label "org.opencontainers.image.source=https://github.com/$(IMAGE_NAME)" \
+		--label "org.opencontainers.image.version=$(IMAGE_TAG)" \
+		--tag $(IMAGE_NAMETAG) .
 	mkdir --parents $(BUILD_DIR) && touch $@
 
-DOCKER_CONTAINER_ID != $(IF_DOCKERD_UP) && docker container ls --quiet --all --filter name=^/$(DOCKER_CONTAINER_NAME)$
-DOCKER_CONTAINER_STATE != $(IF_DOCKERD_UP) && docker container ls --format {{.State}} --all --filter name=^/$(DOCKER_CONTAINER_NAME)$
-DOCKER_CONTAINER_RUN_STATUS != [[ "$(DOCKER_CONTAINER_STATE)" != "running" ]] && echo "container_not_running"
-.PHONY: container_not_running
-$(BUILD_DIR)/container: $(BUILD_DIR)/image $(DOCKER_CONTAINER_RUN_STATUS)
-ifneq ($(DOCKER_CONTAINER_ID),)
-	docker container rename $(DOCKER_CONTAINER_NAME) $(DOCKER_CONTAINER_NAME)_$(DOCKER_CONTAINER_ID)
+CONTAINER_ID != podman container ls --quiet --all --filter name=^$(CONTAINER_NAME)$
+CONTAINER_STATE != podman container ls --format {{.State}} --all --filter name=^$(CONTAINER_NAME)$
+CONTAINER_RUN_STATUS != [[ ! "$(CONTAINER_STATE)" =~ ^Up ]] && echo "$(BUILD_DIR)/not_ready"
+$(BUILD_DIR)/container: $(BUILD_DIR)/image $(CONTAINER_RUN_STATUS)
+ifneq ($(CONTAINER_ID),)
+	podman container rename $(CONTAINER_NAME) $(CONTAINER_NAME)_$(CONTAINER_ID)
 endif
-	docker run --interactive --tty --detach \
-		--env KEEP_SUDO=$(KEEP_SUDO) \
-		--env USER_ID="$(USER_ID)" --env USER_NAME="$(USER_NAME)" \
+	podman run --interactive --tty --detach \
 		--env "TERM=xterm-256color" \
-		--name $(DOCKER_CONTAINER_NAME) \
 		--mount type=bind,source="$$(pwd)",target="$$(pwd)" \
-		--workdir "$$(pwd)" \
-		$(DOCKER_IMAGE_TAG)
-	sleep 1
+		--name $(CONTAINER_NAME) \
+		--userns keep-id \
+		--workdir "$$HOME" \
+		$(IMAGE_NAMETAG)
+	podman exec --user root $(CONTAINER_NAME) \
+		bash -c "chown $$(id -u):$$(id -g) $$HOME"
+	mkdir --parents $(BUILD_TESTS)
 	mkdir --parents $(BUILD_DIR) && touch $@
 
 
-$(BUILD_DIR)/gcc/Release/hello_world: $(BUILD_DIR)/container $(HELLO_WORLD_DEPS)
-	docker exec --user $(USER_NAME) $(DOCKER_CONTAINER_NAME) \
+$(BUILD_TESTS)/gcc/hello_world: $(BUILD_DIR)/container $(HELLO_WORLD_DEPS)
+	podman exec --workdir $$(pwd) $(CONTAINER_NAME) \
+		bash -c " \
+		CC=gcc \
+		CXX=g++ \
+		cmake \
+		-S $(TESTS_DIR) \
+		-B $(BUILD_TESTS)/gcc \
+		-G Ninja \
+		-DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
+	"
+	podman exec --workdir $$(pwd) $(CONTAINER_NAME) \
+		bash -c " \
+		cmake \
+		--build $(BUILD_TESTS)/gcc \
+		--verbose \
+	"
+	podman exec --workdir $$(pwd) $(CONTAINER_NAME) \
+		bash -c "./$(BUILD_TESTS)/gcc/hello_world" | grep --quiet "Hello world!"
+	grep --quiet "bin/g++" $(BUILD_TESTS)/gcc/compile_commands.json
+	[[ $$(stat --format "%U" $@) == $$(id --user --name) ]]
+	[[ $$(stat --format "%G" $@) == $$(id --group --name) ]]
+	touch $@
+
+$(BUILD_TESTS)/llvm/hello_world: $(BUILD_DIR)/container $(HELLO_WORLD_DEPS)
+	podman exec --workdir $$(pwd) $(CONTAINER_NAME) \
+		bash -c " \
+		CC=clang \
+		CXX=clang++ \
+		cmake \
+		-S $(TESTS_DIR) \
+		-B $(BUILD_TESTS)/llvm \
+		-DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
+	"
+	podman exec --workdir $$(pwd) $(CONTAINER_NAME) \
+		bash -c " \
+		cmake \
+		--build $(BUILD_TESTS)/llvm \
+		--verbose \
+	"
+	podman exec --workdir $$(pwd) $(CONTAINER_NAME) \
+		bash -c "./$(BUILD_TESTS)/llvm/hello_world" | grep --quiet "Hello world!"
+	grep --quiet "bin/clang++" $(BUILD_TESTS)/llvm/compile_commands.json
+	[[ $$(stat --format "%U" $@) == $$(id --user --name) ]]
+	[[ $$(stat --format "%G" $@) == $$(id --group --name) ]]
+	touch $@
+
+$(BUILD_TESTS)/valgrind: $(BUILD_TESTS)/gcc/hello_world $(BUILD_TESTS)/llvm/hello_world
+	podman exec --workdir $$(pwd) $(CONTAINER_NAME) \
+		bash -c "valgrind $(BUILD_TESTS)/gcc/hello_world"
+	podman exec --workdir $$(pwd) $(CONTAINER_NAME) \
+		bash -c "valgrind $(BUILD_TESTS)/llvm/hello_world"
+	touch $@
+
+$(BUILD_TESTS)/gdb: $(BUILD_TESTS)/gcc/hello_world $(BUILD_TESTS)/llvm/hello_world
+	podman exec --workdir $$(pwd) $(CONTAINER_NAME) \
+		bash -c " \
+		gdb -ex run -ex quit ./$(BUILD_TESTS)/gcc/hello_world && \
+		gdb -ex run -ex quit ./$(BUILD_TESTS)/llvm/hello_world && \
+		: "
+	touch $@
+
+$(BUILD_TESTS)/clang_tidy: $(BUILD_TESTS)/gcc/hello_world $(BUILD_TESTS)/llvm/hello_world
+	podman exec --workdir $$(pwd) $(CONTAINER_NAME) \
+		bash -c " \
+		clang-tidy -p $(BUILD_TESTS)/gcc $(TESTS_DIR)/hello_world.cpp && \
+		clang-tidy -p $(BUILD_TESTS)/llvm $(TESTS_DIR)/hello_world.cpp && \
+		: "
+	touch $@
+
+$(BUILD_TESTS)/versions: $(BUILD_DIR)/container
+	podman exec --workdir $$(pwd) $(CONTAINER_NAME) \
+		bash -c "cmake --version" | grep --perl-regexp --quiet "3\.25\.0"
+	podman exec --workdir $$(pwd) $(CONTAINER_NAME) \
 		bash -c "gcc --version" | grep --perl-regexp --quiet "12\.\d+\.\d+"
-	docker exec --user $(USER_NAME) $(DOCKER_CONTAINER_NAME) \
+	podman exec --workdir $$(pwd) $(CONTAINER_NAME) \
 		bash -c "g++ --version" | grep --perl-regexp --quiet "12\.\d+\.\d+"
-	docker exec --user $(USER_NAME) $(DOCKER_CONTAINER_NAME) \
-		bash -c " \
-		ASAN=ON \
-		UBSAN=ON \
-		conan install \
-		--profile:host gcc.jinja \
-		--profile:build gcc.jinja \
-		--settings build_type=Release \
-		--build missing \
-		--install-folder $(BUILD_DIR)/gcc $(TESTS_DIR) \
-		"
-	docker exec --user $(USER_NAME) $(DOCKER_CONTAINER_NAME) \
-		bash -c " \
-		cmake \
-		-S $(TESTS_DIR) \
-		-B $(BUILD_DIR)/gcc \
-		-G \"Ninja Multi-Config\" \
-		-DCMAKE_CONFIGURATION_TYPES=\"Release\" \
-		-DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
-		-DCMAKE_TOOLCHAIN_FILE=\"conan_toolchain.cmake\" \
-	"
-	docker exec --user $(USER_NAME) $(DOCKER_CONTAINER_NAME) \
-		bash -c " \
-		cmake \
-		--build $(BUILD_DIR)/gcc \
-		--config Release \
-		--verbose \
-	"
-	docker exec --user $(USER_NAME) $(DOCKER_CONTAINER_NAME) \
-		bash -c "./$(BUILD_DIR)/gcc/Release/hello_world" | grep --quiet "Hello world!"
-	grep --quiet "g++" $(BUILD_DIR)/gcc/compile_commands.json
-	grep --quiet "\-fsanitize=address" $(BUILD_DIR)/gcc/compile_commands.json
-	grep --quiet "\-fsanitize=undefined" $(BUILD_DIR)/gcc/compile_commands.json
+	podman exec --workdir $$(pwd) $(CONTAINER_NAME) \
+		bash -c "clang --version" | grep --perl-regexp --quiet "15\.\d+\.\d+"
+	podman exec --workdir $$(pwd) $(CONTAINER_NAME) \
+		bash -c "clang++ --version" | grep --perl-regexp --quiet "15\.\d+\.\d+"
+	podman exec --workdir $$(pwd) $(CONTAINER_NAME) \
+		bash -c "clang-format --version" | grep --perl-regexp --quiet "15\.\d+\.\d+"
+	podman exec --workdir $$(pwd) $(CONTAINER_NAME) \
+		bash -c "clang-tidy --version" | grep --perl-regexp --quiet "15\.\d+\.\d+"
+	podman exec --workdir $$(pwd) $(CONTAINER_NAME) \
+		bash -c "FileCheck --version" | grep --perl-regexp --quiet "15\.\d+\.\d+"
 	touch $@
 
-$(BUILD_DIR)/llvm/Release/hello_world: $(BUILD_DIR)/container $(HELLO_WORLD_DEPS)
-	docker exec --user $(USER_NAME) $(DOCKER_CONTAINER_NAME) \
-		bash -c "clang --version" | grep --perl-regexp --quiet "14\.\d+\.\d+"
-	docker exec --user $(USER_NAME) $(DOCKER_CONTAINER_NAME) \
-		bash -c "clang++ --version" | grep --perl-regexp --quiet "14\.\d+\.\d+"
-	docker exec --user $(USER_NAME) $(DOCKER_CONTAINER_NAME) \
-		bash -c " \
-		ASAN=ON \
-		UBSAN=ON \
-		conan install \
-		--profile:host llvm.jinja \
-		--profile:build llvm.jinja \
-		--settings build_type=Release \
-		--build missing \
-		--install-folder $(BUILD_DIR)/llvm $(TESTS_DIR) \
-		"
-	docker exec --user $(USER_NAME) $(DOCKER_CONTAINER_NAME) \
-		bash -c " \
-		cmake \
-		-S $(TESTS_DIR) \
-		-B $(BUILD_DIR)/llvm \
-		-G \"Ninja Multi-Config\" \
-		-DCMAKE_CONFIGURATION_TYPES=\"Release\" \
-		-DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
-		-DCMAKE_TOOLCHAIN_FILE=\"conan_toolchain.cmake\" \
-	"
-	docker exec --user $(USER_NAME) $(DOCKER_CONTAINER_NAME) \
-		bash -c " \
-		cmake \
-		--build $(BUILD_DIR)/llvm \
-		--config Release \
-		--verbose \
-	"
-	docker exec --user $(USER_NAME) $(DOCKER_CONTAINER_NAME) \
-		bash -c "./$(BUILD_DIR)/llvm/Release/hello_world" | grep --quiet "Hello world!"
-	grep --quiet "clang++" $(BUILD_DIR)/llvm/compile_commands.json
-	grep --quiet "\-fsanitize=address" $(BUILD_DIR)/llvm/compile_commands.json
-	grep --quiet "\-fsanitize=undefined" $(BUILD_DIR)/llvm/compile_commands.json
+$(BUILD_DIR)/tests/username: $(BUILD_DIR)/container
+	container_username=$$(podman exec --workdir "$$(pwd)" $(CONTAINER_NAME) \
+		bash -c "id --user --name") && \
+	[[ "$$container_username" == "$$(id --user --name)" ]]
 	touch $@
 
-$(BUILD_DIR)/valgrind_test: $(BUILD_DIR)/gcc/Release/hello_world $(BUILD_DIR)/llvm/Release/hello_world
-	docker exec --user $(USER_NAME) $(DOCKER_CONTAINER_NAME) \
-		bash -c "valgrind --version"
-	touch $@
-
-$(BUILD_DIR)/gdb_test: $(BUILD_DIR)/gcc/Release/hello_world $(BUILD_DIR)/llvm/Release/hello_world
-	docker exec --user $(USER_NAME) $(DOCKER_CONTAINER_NAME) \
-		bash -c " \
-		gdb -ex run -ex quit ./build/gcc/Release/hello_world && \
-		gdb -ex run -ex quit ./build/llvm/Release/hello_world && \
-		: "
-	touch $@
-
-$(BUILD_DIR)/clang_tidy_test: $(BUILD_DIR)/gcc/Release/hello_world $(BUILD_DIR)/llvm/Release/hello_world
-	docker exec --user $(USER_NAME) $(DOCKER_CONTAINER_NAME) \
-		bash -c "clang-tidy --version" | grep --perl-regexp --quiet "14\.\d+\.\d+"
-	docker exec --user $(USER_NAME) $(DOCKER_CONTAINER_NAME) \
-		bash -c " \
-		clang-tidy -p $(BUILD_DIR)/gcc $(TESTS_DIR)/hello_world.cpp && \
-		clang-tidy -p $(BUILD_DIR)/llvm $(TESTS_DIR)/hello_world.cpp && \
-		: "
-	touch $@
-
-$(BUILD_DIR)/clang_format_test: $(BUILD_DIR)/container
-	docker exec --user $(USER_NAME) $(DOCKER_CONTAINER_NAME) \
-		bash -c "clang-format --version" | grep --perl-regexp --quiet "14\.\d+\.\d+"
-	touch $@
-
-$(BUILD_DIR)/lit_test: $(BUILD_DIR)/container
-	docker exec --user $(USER_NAME) $(DOCKER_CONTAINER_NAME) \
-		bash -c "lit --version" | grep --perl-regexp --quiet "14\.\d+\.\d+"
-	touch $@
-
-$(BUILD_DIR)/filecheck_test: $(BUILD_DIR)/container
-	docker exec --user $(USER_NAME) $(DOCKER_CONTAINER_NAME) \
-		bash -c "FileCheck --version" | grep --perl-regexp --quiet "14\.\d+\.\d+"
+$(BUILD_DIR)/tests/readme: readme.md
+	readme_version=$$(grep --perl-regexp --only-matching "$(IMAGE_NAME):\K\d+\.\d+\.\d+" readme.md) && \
+	[[ "$$readme_version" == "$(IMAGE_TAG)" ]]
 	touch $@
 
 .PHONY: check
 check: \
-	$(BUILD_DIR)/gcc/Release/hello_world \
-	$(BUILD_DIR)/llvm/Release/hello_world \
-	$(BUILD_DIR)/clang_tidy_test \
-	$(BUILD_DIR)/gdb_test \
-	$(BUILD_DIR)/valgrind_test \
-	$(BUILD_DIR)/lit_test \
-	$(BUILD_DIR)/filecheck_test \
+	$(BUILD_DIR)/tests/gcc/hello_world \
+	$(BUILD_DIR)/tests/llvm/hello_world \
+	$(BUILD_DIR)/tests/clang_tidy \
+	$(BUILD_DIR)/tests/gdb \
+	$(BUILD_DIR)/tests/valgrind \
+	$(BUILD_DIR)/tests/readme \
+	$(BUILD_DIR)/tests/username \
+	$(BUILD_DIR)/tests/versions \
 
 .PHONY: clean
 clean:
-	docker container ls --quiet --filter name=$(DOCKER_CONTAINER_NAME)_ | \
-		ifne xargs docker stop
-	docker container ls --quiet --filter name=$(DOCKER_CONTAINER_NAME)_ --all | \
-		ifne xargs docker rm
+	podman container ls --quiet --filter name=^$(CONTAINER_NAME) | xargs podman stop || true
+	podman container ls --quiet --filter name=^$(CONTAINER_NAME) --all | xargs podman rm || true
 
