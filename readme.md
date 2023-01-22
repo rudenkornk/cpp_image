@@ -13,7 +13,7 @@ podman run --interactive --tty --detach \
   --mount type=bind,source="$(pwd)",target="$(pwd)" `# mount your repo` \
   --name cpp \
   --userns keep-id `# keeps your non-root username` \
-  --workdir "$HOME" `# podman sets homedir to the workdir for some readon` \
+  --workdir "$HOME" `# podman sets homedir to the workdir for some reason` \
   ghcr.io/rudenkornk/cpp_image:2.0.0
 podman exec --user root cpp bash -c "chown $(id --user):$(id --group) $HOME"
 
