@@ -2,26 +2,19 @@ SHELL = /usr/bin/env bash
 
 CACHE_FROM ?=
 
-PROJECT_NAME := cpp_image
-BUILD_DIR := __build__
-BUILD_TESTS := $(BUILD_DIR)/tests
-TESTS_DIR := tests
+IMAGE ?= ubuntu_22
+include $(IMAGE)/setting.mk
 
-IMAGE_TAG := 2.0.0
-IMAGE_NAME := rudenkornk/$(PROJECT_NAME)
+BUILD_DIR := __build__/$(BASE_NAME)/$(IMAGE_TAG)
+BUILD_TESTS := $(BUILD_DIR)/tests
+CONTAINER_NAME := $(BASE_NAME)_cont
+IMAGE_NAME := rudenkornk/$(BASE_NAME)
 IMAGE_NAMETAG := $(IMAGE_NAME):$(IMAGE_TAG)
-CONTAINER_NAME := cpp
+TESTS_DIR := tests
 VCS_REF != git rev-parse HEAD
 
-DEPS :=
-DEPS += Containerfile
-DEPS += install_basic_utils.sh
-DEPS += install_gcc.sh
-DEPS += install_llvm.sh
-DEPS += install_cmake.sh
-DEPS += install_python.sh
-DEPS += config_system.sh
-DEPS += license.md
+DEPS != grep --perl-regexp --only-matching "COPY \K.*?(?= \S+$$)" $(CONTAINERFILE)
+DEPS += $(CONTAINERFILE)
 
 HELLO_WORLD_DEPS != find $(TESTS_DIR) -type f,l
 
@@ -53,7 +46,8 @@ $(BUILD_DIR)/image: $(DEPS) $(IMAGE_CREATE_STATUS)
 		--label "org.opencontainers.image.revision=$(VCS_REF)" \
 		--label "org.opencontainers.image.source=https://github.com/$(IMAGE_NAME)" \
 		--label "org.opencontainers.image.version=$(IMAGE_TAG)" \
-		--tag $(IMAGE_NAMETAG) .
+		--tag $(IMAGE_NAMETAG) \
+		--file $(CONTAINERFILE) .
 	mkdir --parents $(BUILD_DIR) && touch $@
 
 CONTAINER_ID != podman container ls --quiet --all --filter name=^$(CONTAINER_NAME)$
