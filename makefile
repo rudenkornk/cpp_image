@@ -5,6 +5,7 @@ CACHE_FROM ?=
 IMAGE ?= ubuntu_22
 include $(IMAGE)/setting.mk
 
+PROJECT := rudenkornk/latex_image
 BUILD_DIR := __build__/$(BASE_NAME)/$(IMAGE_TAG)
 BUILD_TESTS := $(BUILD_DIR)/tests
 CONTAINER_NAME := $(BASE_NAME)_cont
@@ -44,7 +45,7 @@ $(BUILD_DIR)/image: $(DEPS) $(IMAGE_CREATE_STATUS)
 		--cache-from '$(CACHE_FROM)' \
 		--label "org.opencontainers.image.ref.name=$(IMAGE_NAME)" \
 		--label "org.opencontainers.image.revision=$(VCS_REF)" \
-		--label "org.opencontainers.image.source=https://github.com/$(IMAGE_NAME)" \
+		--label "org.opencontainers.image.source=https://github.com/$(PROJECT)" \
 		--label "org.opencontainers.image.version=$(IMAGE_TAG)" \
 		--tag $(IMAGE_NAMETAG) \
 		--file $(CONTAINERFILE) .
