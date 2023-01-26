@@ -159,27 +159,27 @@ $(BUILD_TESTS)/versions: $(BUILD_DIR)/container
 		bash -c "FileCheck --version" | grep --perl-regexp --quiet "15\.\d+\.\d+"
 	touch $@
 
-$(BUILD_DIR)/tests/username: $(BUILD_DIR)/container
+$(BUILD_TESTS)/username: $(BUILD_DIR)/container
 	container_username=$$(podman exec --workdir "$$(pwd)" $(CONTAINER_NAME) \
 		bash -c "id --user --name") && \
 	[[ "$$container_username" == "$$(id --user --name)" ]]
 	touch $@
 
-$(BUILD_DIR)/tests/readme: readme.md
+$(BUILD_TESTS)/readme: readme.md
 	readme_version=$$(grep --perl-regexp --only-matching "$(IMAGE_NAME):\K\d+\.\d+\.\d+" readme.md) && \
 	[[ "$$readme_version" == "$(IMAGE_TAG)" ]]
 	touch $@
 
 .PHONY: check
 check: \
-	$(BUILD_DIR)/tests/gcc/hello_world \
-	$(BUILD_DIR)/tests/llvm/hello_world \
-	$(BUILD_DIR)/tests/clang_tidy \
-	$(BUILD_DIR)/tests/gdb \
-	$(BUILD_DIR)/tests/valgrind \
-	$(BUILD_DIR)/tests/readme \
-	$(BUILD_DIR)/tests/username \
-	$(BUILD_DIR)/tests/versions \
+	$(BUILD_TESTS)/gcc/hello_world \
+	$(BUILD_TESTS)/llvm/hello_world \
+	$(BUILD_TESTS)/clang_tidy \
+	$(BUILD_TESTS)/gdb \
+	$(BUILD_TESTS)/valgrind \
+	$(BUILD_TESTS)/readme \
+	$(BUILD_TESTS)/username \
+	$(BUILD_TESTS)/versions \
 
 .PHONY: clean
 clean:
