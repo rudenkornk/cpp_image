@@ -4,7 +4,7 @@ CONTAINERFILE ?=
 
 CACHE_FROM ?=
 
-PROJECT := rudenkornk/latex_image
+PROJECT := rudenkornk/cpp_image
 BUILD_DIR := __build__/$(BASE_NAME)/$(IMAGE_TAG)
 BUILD_TESTS := $(BUILD_DIR)/tests
 CONTAINER_NAME := $(BASE_NAME)_cont
