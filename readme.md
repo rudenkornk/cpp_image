@@ -14,7 +14,7 @@ podman run --interactive --tty --detach \
   --name cpp \
   --userns keep-id `# keeps your non-root username` \
   --workdir "$HOME" `# podman sets homedir to the workdir for some reason` \
-  ghcr.io/rudenkornk/cpp_ubuntu:22.0.1
+  ghcr.io/rudenkornk/cpp_ubuntu:22.0.2
 podman exec --user root cpp bash -c "chown $(id --user):$(id --group) $HOME"
 
 # Execute single command
