@@ -32,5 +32,3 @@ DEBIAN_FRONTEND=noninteractive apt-get install --yes --no-install-recommends \
   tar gzip zip unzip bzip2 p7zip-full p7zip-rar xz-utils \
   valgrind \
   vim \
-
-git config --system --add safe.directory '*'
