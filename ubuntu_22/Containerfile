@@ -1,4 +1,4 @@
-FROM docker.io/library/ubuntu:22.04
+FROM docker.io/library/ubuntu:jammy-20230126
 
 WORKDIR /etc/configs
 
