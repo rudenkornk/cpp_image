@@ -140,6 +140,34 @@ $(BUILD_TESTS)/clang_tidy: $(BUILD_TESTS)/gcc/hello_world $(BUILD_TESTS)/llvm/he
 		: "
 	touch $@
 
+$(BUILD_TESTS)/env: $(BUILD_DIR)/container
+	# glibc compilation requires env variables to be correctly formed
+	podman exec $(CONTAINER_NAME) \
+		bash -c 'echo $$PATH' | \
+		grep --perl-regexp --quiet --invert-match --only-matching "(^:|:$$|::)"
+	podman exec $(CONTAINER_NAME) \
+		bash -c 'echo $$MANPATH' | \
+		grep --perl-regexp --quiet --invert-match --only-matching "(^:|:$$|::)"
+	podman exec $(CONTAINER_NAME) \
+		bash -c 'echo $$INFOPATH' | \
+		grep --perl-regexp --quiet --invert-match --only-matching "(^:|:$$|::)"
+	podman exec $(CONTAINER_NAME) \
+		bash -c 'echo $$PCP_DIR' | \
+		grep --perl-regexp --quiet --invert-match --only-matching "(^:|:$$|::)"
+	podman exec $(CONTAINER_NAME) \
+		bash -c 'echo $$LD_LIBRARY_PATH' | \
+		grep --perl-regexp --invert-match --quiet --only-matching "(^:|:$$|::)"
+	podman exec $(CONTAINER_NAME) \
+		bash -c 'echo $$PKG_CONFIG_PATH' | \
+		grep --perl-regexp --invert-match --quiet --only-matching "(^:|:$$|::)"
+	podman exec $(CONTAINER_NAME) \
+		bash -c 'echo $$PYTHONPATH' | \
+		grep --perl-regexp --invert-match --quiet --only-matching "(^:|:$$|::)"
+	podman exec $(CONTAINER_NAME) \
+		bash -c 'echo $$XDG_DATA_DIRS' | \
+		grep --perl-regexp --invert-match --quiet --only-matching "(^:|:$$|::)"
+	touch $@
+
 $(BUILD_TESTS)/versions: $(BUILD_DIR)/container
 	podman exec --workdir $$(pwd) $(CONTAINER_NAME) \
 		bash -c "cmake --version" | grep --perl-regexp --quiet "3\.25\.0"
@@ -157,12 +185,23 @@ $(BUILD_TESTS)/versions: $(BUILD_DIR)/container
 		bash -c "clang-tidy --version" | grep --perl-regexp --quiet "15\.\d+\.\d+"
 	podman exec --workdir $$(pwd) $(CONTAINER_NAME) \
 		bash -c "FileCheck --version" | grep --perl-regexp --quiet "15\.\d+\.\d+"
+	podman exec --workdir $$(pwd) $(CONTAINER_NAME) \
+		bash -c "python3 --version" | grep --perl-regexp --quiet "3\.10\.\d+"
+	bash_version=$$(podman exec --workdir "$$(pwd)" $(CONTAINER_NAME) \
+		bash -c "bash --version" | grep --perl-regexp --only-matching "\d+\.\d+\.\d+"); \
+		{ echo 4.4.0; echo $$bash_version; } | sort --version-sort --check &> /dev/null
+	git_version=$$(podman exec --workdir "$$(pwd)" $(CONTAINER_NAME) \
+		bash -c "git --version" | grep --perl-regexp --only-matching "\d+\.\d+\.\d+"); \
+		{ echo 2.0.0; echo $$git_version; } | sort --version-sort --check &> /dev/null
 	touch $@
 
 $(BUILD_DIR)/tests/username: $(BUILD_DIR)/container
 	container_username=$$(podman exec --workdir "$$(pwd)" $(CONTAINER_NAME) \
 		bash -c "id --user --name") && \
 	[[ "$$container_username" == "$$(id --user --name)" ]]
+	container_home=$$(podman exec --workdir "$$(pwd)" $(CONTAINER_NAME) \
+		bash -c "echo $$HOME") && \
+	[[ "$$container_home" == "/home/$$(id --user --name)" ]]
 	touch $@
 
 $(BUILD_DIR)/tests/readme: readme.md
@@ -178,6 +217,7 @@ check: \
 	$(BUILD_DIR)/tests/gdb \
 	$(BUILD_DIR)/tests/valgrind \
 	$(BUILD_DIR)/tests/readme \
+	$(BUILD_DIR)/tests/env \
 	$(BUILD_DIR)/tests/username \
 	$(BUILD_DIR)/tests/versions \
 
