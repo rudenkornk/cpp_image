@@ -31,6 +31,7 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v3
       with:
+        fetch-depth: 0
         ref: ${{ github.event.pull_request.head.sha }}
     - name: Show machine info
       run: id; df -h; podman image ls; podman ps; podman ps -a
@@ -66,6 +67,16 @@ jobs:
         echo "IMAGE_NAMETAG=$IMAGE_NAMETAG" >> "$GITHUB_ENV"
         echo "REMOTE_IMAGE_NAMETAG=$REMOTE_IMAGE_NAMETAG" >> "$GITHUB_ENV"
         echo "REMOTE_IMAGE_LATEST=$REMOTE_IMAGE_LATEST" >> "$GITHUB_ENV"
+    - name: Check readme is updated
+      if: env.WILL_BE_DEPLOYED == 'true'
+      run: |
+        README_NAMETAG=$(make --silent readme_nametag)
+        if [[ "$README_NAMETAG" != "$IMAGE_NAMETAG" ]]; then
+          echo "Looks like readme was not updated."
+          echo "Readme has nametag '$README_NAMETAG'"
+          echo "Deploying version '$IMAGE_NAMETAG'"
+          exit 1
+        fi
     - name: Check tag is not in registry
       if: env.WILL_BE_DEPLOYED == 'true'
       run: |

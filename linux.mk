@@ -36,6 +36,11 @@ image_nametag:
 image_tag:
 	$(info $(IMAGE_TAG))
 
+.PHONY: readme_nametag
+readme_nametag:
+	echo $$(grep --perl-regexp --only-matching "$(IMAGE_NAME):\d+\.\d+\.\d+" readme.md)
+
+
 .PHONY: $(BUILD_DIR)/not_ready
 
 IMAGE_CREATE_STATUS != podman image exists $(IMAGE_NAMETAG) || echo "$(BUILD_DIR)/not_ready"
@@ -204,11 +209,6 @@ $(BUILD_DIR)/tests/username: $(BUILD_DIR)/container
 	[[ "$$container_home" == "/home/$$(id --user --name)" ]]
 	touch $@
 
-$(BUILD_DIR)/tests/readme: readme.md
-	readme_version=$$(grep --perl-regexp --only-matching "$(IMAGE_NAME):\K\d+\.\d+\.\d+" readme.md) && \
-	[[ "$$readme_version" == "$(IMAGE_TAG)" ]]
-	touch $@
-
 .PHONY: check
 check: \
 	$(BUILD_DIR)/tests/gcc/hello_world \
@@ -216,7 +216,6 @@ check: \
 	$(BUILD_DIR)/tests/clang_tidy \
 	$(BUILD_DIR)/tests/gdb \
 	$(BUILD_DIR)/tests/valgrind \
-	$(BUILD_DIR)/tests/readme \
 	$(BUILD_DIR)/tests/env \
 	$(BUILD_DIR)/tests/username \
 	$(BUILD_DIR)/tests/versions \
