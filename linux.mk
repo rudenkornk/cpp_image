@@ -175,7 +175,7 @@ $(BUILD_TESTS)/env: $(BUILD_DIR)/container
 
 $(BUILD_TESTS)/versions: $(BUILD_DIR)/container
 	podman exec --workdir $$(pwd) $(CONTAINER_NAME) \
-		bash -c "cmake --version" | grep --perl-regexp --quiet "3\.25\.0"
+		bash -c "cmake --version" | grep --perl-regexp --quiet "3\.26\.\d+"
 	podman exec --workdir $$(pwd) $(CONTAINER_NAME) \
 		bash -c "gcc --version" | grep --perl-regexp --quiet "12\.\d+\.\d+"
 	podman exec --workdir $$(pwd) $(CONTAINER_NAME) \
