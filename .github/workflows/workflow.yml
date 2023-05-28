@@ -114,3 +114,21 @@ jobs:
         with:
           repo-token: ${{ github.token }}
           tag: "v${{ env.IMAGE_TAG }}"
+
+  lint:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha }}
+      - name: Format
+        run: make format
+      - name: Check format
+        run: |
+          if [[ -n "$(git diff)" ]]; then
+            echo "Code is not formatted."
+            git diff
+            exit 1
+          fi

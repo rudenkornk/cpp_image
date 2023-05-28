@@ -40,6 +40,13 @@ image_tag:
 readme_nametag:
 	echo $$(grep --perl-regexp --only-matching "$(IMAGE_NAME):\d+\.\d+\.\d+" readme.md)
 
+.PHONY: format
+format: $(BUILD_DIR)/node_modules
+	npx prettier --ignore-path <(cat .gitignore .prettierignore) --write .
+
+$(BUILD_DIR)/node_modules: package.json package-lock.json
+	npm install --save-exact;
+	mkdir --parents $(BUILD_DIR) && touch $@
 
 .PHONY: $(BUILD_DIR)/not_ready
 
