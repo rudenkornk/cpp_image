@@ -28,89 +28,89 @@ jobs:
     env:
       REGISTRY: ghcr.io
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v3
-      with:
-        fetch-depth: 0
-        ref: ${{ github.event.pull_request.head.sha }}
-    - name: Show machine info
-      run: id; df -h; podman image ls; podman ps; podman ps -a
-    - name: Install prerequisites
-      run: sudo apt-get install poppler-utils
-    - name: Set environment
-      run: |
-        if git log --format=%B -n 1 | grep "\[DEPLOY\]" --quiet; then
-          COMMIT_MSG_HAS_DEPLOY="true"
-          WILL_BE_DEPLOYED="true"
-        fi
-        if [[ "$COMMIT_MSG_HAS_DEPLOY" == "true" && "${{ github.event_name }}" == "push" ]]; then
-          IS_DEPLOY="true"
-        fi
-        if [[ "${{ github.event.inputs.deploy }}" == "true" ]]; then
-          IS_DEPLOY="true"
-          WILL_BE_DEPLOYED="true"
-        fi
-        # shellcheck disable=SC2129
-        echo "IS_DEPLOY=$IS_DEPLOY" >> "$GITHUB_ENV"
-        echo "WILL_BE_DEPLOYED=$WILL_BE_DEPLOYED" >> "$GITHUB_ENV"
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha }}
+      - name: Show machine info
+        run: id; df -h; podman image ls; podman ps; podman ps -a
+      - name: Install prerequisites
+        run: sudo apt-get install poppler-utils
+      - name: Set environment
+        run: |
+          if git log --format=%B -n 1 | grep "\[DEPLOY\]" --quiet; then
+            COMMIT_MSG_HAS_DEPLOY="true"
+            WILL_BE_DEPLOYED="true"
+          fi
+          if [[ "$COMMIT_MSG_HAS_DEPLOY" == "true" && "${{ github.event_name }}" == "push" ]]; then
+            IS_DEPLOY="true"
+          fi
+          if [[ "${{ github.event.inputs.deploy }}" == "true" ]]; then
+            IS_DEPLOY="true"
+            WILL_BE_DEPLOYED="true"
+          fi
+          # shellcheck disable=SC2129
+          echo "IS_DEPLOY=$IS_DEPLOY" >> "$GITHUB_ENV"
+          echo "WILL_BE_DEPLOYED=$WILL_BE_DEPLOYED" >> "$GITHUB_ENV"
 
-        IMAGE_NAME=$(make --silent image_name)
-        IMAGE_TAG=$(make --silent image_tag)
-        IMAGE_NAMETAG=$IMAGE_NAME:$IMAGE_TAG
-        REMOTE_IMAGE_NAMETAG=$REGISTRY/$IMAGE_NAMETAG
-        REMOTE_IMAGE_LATEST=$REGISTRY/$IMAGE_NAME:latest
+          IMAGE_NAME=$(make --silent image_name)
+          IMAGE_TAG=$(make --silent image_tag)
+          IMAGE_NAMETAG=$IMAGE_NAME:$IMAGE_TAG
+          REMOTE_IMAGE_NAMETAG=$REGISTRY/$IMAGE_NAMETAG
+          REMOTE_IMAGE_LATEST=$REGISTRY/$IMAGE_NAME:latest
 
-        # shellcheck disable=SC2129
-        echo "CACHE_FROM=$REMOTE_IMAGE_LATEST" >> "$GITHUB_ENV"
-        echo "IMAGE_TAG=$IMAGE_TAG" >> "$GITHUB_ENV"
-        echo "IMAGE_NAME=$IMAGE_NAME" >> "$GITHUB_ENV"
-        echo "IMAGE_NAMETAG=$IMAGE_NAMETAG" >> "$GITHUB_ENV"
-        echo "REMOTE_IMAGE_NAMETAG=$REMOTE_IMAGE_NAMETAG" >> "$GITHUB_ENV"
-        echo "REMOTE_IMAGE_LATEST=$REMOTE_IMAGE_LATEST" >> "$GITHUB_ENV"
-    - name: Check readme is updated
-      if: env.WILL_BE_DEPLOYED == 'true'
-      run: |
-        README_NAMETAG=$(make --silent readme_nametag)
-        if [[ "$README_NAMETAG" != "$IMAGE_NAMETAG" ]]; then
-          echo "Looks like readme was not updated."
-          echo "Readme has nametag '$README_NAMETAG'"
-          echo "Deploying version '$IMAGE_NAMETAG'"
-          exit 1
-        fi
-    - name: Check tag is not in registry
-      if: env.WILL_BE_DEPLOYED == 'true'
-      run: |
-        TOKEN=$(curl --silent "https://$REGISTRY/token?scope=repository:$IMAGE_NAME:pull" | jq --raw-output '.token')
-        INDEX=$(curl --silent -H "Authorization: Bearer $TOKEN" https://"$REGISTRY"/v2/"$IMAGE_NAME"/tags/list | jq --raw-output ".tags | index(\"$IMAGE_TAG\")")
-        if [[ "$INDEX" != "null" ]]; then
-          echo "Image tag $IMAGE_TAG already exists on $REGISTRY!"
-          exit 1
-        fi
+          # shellcheck disable=SC2129
+          echo "CACHE_FROM=$REMOTE_IMAGE_LATEST" >> "$GITHUB_ENV"
+          echo "IMAGE_TAG=$IMAGE_TAG" >> "$GITHUB_ENV"
+          echo "IMAGE_NAME=$IMAGE_NAME" >> "$GITHUB_ENV"
+          echo "IMAGE_NAMETAG=$IMAGE_NAMETAG" >> "$GITHUB_ENV"
+          echo "REMOTE_IMAGE_NAMETAG=$REMOTE_IMAGE_NAMETAG" >> "$GITHUB_ENV"
+          echo "REMOTE_IMAGE_LATEST=$REMOTE_IMAGE_LATEST" >> "$GITHUB_ENV"
+      - name: Check readme is updated
+        if: env.WILL_BE_DEPLOYED == 'true'
+        run: |
+          README_NAMETAG=$(make --silent readme_nametag)
+          if [[ "$README_NAMETAG" != "$IMAGE_NAMETAG" ]]; then
+            echo "Looks like readme was not updated."
+            echo "Readme has nametag '$README_NAMETAG'"
+            echo "Deploying version '$IMAGE_NAMETAG'"
+            exit 1
+          fi
+      - name: Check tag is not in registry
+        if: env.WILL_BE_DEPLOYED == 'true'
+        run: |
+          TOKEN=$(curl --silent "https://$REGISTRY/token?scope=repository:$IMAGE_NAME:pull" | jq --raw-output '.token')
+          INDEX=$(curl --silent -H "Authorization: Bearer $TOKEN" https://"$REGISTRY"/v2/"$IMAGE_NAME"/tags/list | jq --raw-output ".tags | index(\"$IMAGE_TAG\")")
+          if [[ "$INDEX" != "null" ]]; then
+            echo "Image tag $IMAGE_TAG already exists on $REGISTRY!"
+            exit 1
+          fi
 
-    - name: Download cache from registry
-      # Here we assume that latest release have common layers that should speed up our build
-      continue-on-error: true
-      run: podman pull "$REMOTE_IMAGE_LATEST"
-    - name: Build
-      run: make image
-    - name: Test
-      run: make check
-    - name: Show machine info
-      run: id; df -h; podman image ls; podman ps; podman ps -a
+      - name: Download cache from registry
+        # Here we assume that latest release have common layers that should speed up our build
+        continue-on-error: true
+        run: podman pull "$REMOTE_IMAGE_LATEST"
+      - name: Build
+        run: make image
+      - name: Test
+        run: make check
+      - name: Show machine info
+        run: id; df -h; podman image ls; podman ps; podman ps -a
 
-    - name: "[DEPLOY] Login to image registry"
-      if: env.IS_DEPLOY == 'true'
-      run: podman login --username ${{ github.actor }} --password ${{ github.token }} "$REGISTRY"
-    - name: "[DEPLOY] Push image to registry"
-      if: env.IS_DEPLOY == 'true'
-      run: |
-        podman image tag "$IMAGE_NAMETAG" "$REMOTE_IMAGE_NAMETAG"
-        podman image tag "$IMAGE_NAMETAG" "$REMOTE_IMAGE_LATEST"
-        podman image push "$REMOTE_IMAGE_NAMETAG"
-        podman image push "$REMOTE_IMAGE_LATEST"
-    - name: "[DEPLOY] Tag commit"
-      if: env.IS_DEPLOY == 'true'
-      uses: tvdias/github-tagger@v0.0.1
-      with:
-        repo-token: ${{ github.token }}
-        tag: "v${{ env.IMAGE_TAG }}"
+      - name: "[DEPLOY] Login to image registry"
+        if: env.IS_DEPLOY == 'true'
+        run: podman login --username ${{ github.actor }} --password ${{ github.token }} "$REGISTRY"
+      - name: "[DEPLOY] Push image to registry"
+        if: env.IS_DEPLOY == 'true'
+        run: |
+          podman image tag "$IMAGE_NAMETAG" "$REMOTE_IMAGE_NAMETAG"
+          podman image tag "$IMAGE_NAMETAG" "$REMOTE_IMAGE_LATEST"
+          podman image push "$REMOTE_IMAGE_NAMETAG"
+          podman image push "$REMOTE_IMAGE_LATEST"
+      - name: "[DEPLOY] Tag commit"
+        if: env.IS_DEPLOY == 'true'
+        uses: tvdias/github-tagger@v0.0.1
+        with:
+          repo-token: ${{ github.token }}
+          tag: "v${{ env.IMAGE_TAG }}"
