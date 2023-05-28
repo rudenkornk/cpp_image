@@ -21,6 +21,9 @@ ENV VCPKG_ROOT "/usr/local/vcpkg"
 COPY ubuntu_22/install_python.sh ./
 RUN ./install_python.sh
 
+COPY ubuntu_22/install_nodejs.sh ./
+RUN ./install_nodejs.sh
+
 COPY ubuntu_22/config_system.sh ./
 RUN ./config_system.sh
 
