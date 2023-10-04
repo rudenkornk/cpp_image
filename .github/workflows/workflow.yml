@@ -1,12 +1,6 @@
 name: Workflow
 
 on:
-  workflow_dispatch:
-    inputs:
-      deploy:
-        description: "Should this run deploy image"
-        required: false
-        type: boolean
   push:
     branches:
       - main
@@ -39,16 +33,8 @@ jobs:
         run: sudo apt-get install poppler-utils
       - name: Set environment
         run: |
-          if git log --format=%B -n 1 | grep "\[DEPLOY\]" --quiet; then
-            COMMIT_MSG_HAS_DEPLOY="true"
-            WILL_BE_DEPLOYED="true"
-          fi
-          if [[ "$COMMIT_MSG_HAS_DEPLOY" == "true" && "${{ github.event_name }}" == "push" ]]; then
+          if [[ "${{ github.event_name }}" == "push" ]]; then
             IS_DEPLOY="true"
-          fi
-          if [[ "${{ github.event.inputs.deploy }}" == "true" ]]; then
-            IS_DEPLOY="true"
-            WILL_BE_DEPLOYED="true"
           fi
           # shellcheck disable=SC2129
           echo "IS_DEPLOY=$IS_DEPLOY" >> "$GITHUB_ENV"
@@ -68,7 +54,6 @@ jobs:
           echo "REMOTE_IMAGE_NAMETAG=$REMOTE_IMAGE_NAMETAG" >> "$GITHUB_ENV"
           echo "REMOTE_IMAGE_LATEST=$REMOTE_IMAGE_LATEST" >> "$GITHUB_ENV"
       - name: Check readme is updated
-        if: env.WILL_BE_DEPLOYED == 'true'
         run: |
           README_NAMETAG=$(make --silent readme_nametag)
           if [[ "$README_NAMETAG" != "$IMAGE_NAMETAG" ]]; then
@@ -78,10 +63,10 @@ jobs:
             exit 1
           fi
       - name: Check tag is not in registry
-        if: env.WILL_BE_DEPLOYED == 'true'
         run: |
           TOKEN=$(curl --silent "https://$REGISTRY/token?scope=repository:$IMAGE_NAME:pull" | jq --raw-output '.token')
-          INDEX=$(curl --silent -H "Authorization: Bearer $TOKEN" https://"$REGISTRY"/v2/"$IMAGE_NAME"/tags/list | jq --raw-output ".tags | index(\"$IMAGE_TAG\")")
+          INDEX=$(curl --silent -H "Authorization: Bearer $TOKEN" https://"$REGISTRY"/v2/"$IMAGE_NAME"/tags/list | \
+                  jq --raw-output ".tags | index(\"$IMAGE_TAG\")")
           if [[ "$INDEX" != "null" ]]; then
             echo "Image tag $IMAGE_TAG already exists on $REGISTRY!"
             exit 1
