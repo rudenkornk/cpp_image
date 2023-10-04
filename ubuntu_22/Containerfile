@@ -16,7 +16,7 @@ RUN ./install_cmake.sh
 
 COPY ubuntu_22/install_vcpkg.sh ./
 RUN ./install_vcpkg.sh
-ENV VCPKG_ROOT "/usr/local/vcpkg"
+ENV VCPKG_INSTALLATION_ROOT "/usr/local/vcpkg"
 
 COPY ubuntu_22/install_python.sh ./
 RUN ./install_python.sh
