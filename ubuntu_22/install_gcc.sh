@@ -5,7 +5,7 @@ set -o pipefail
 set -o nounset
 set -o xtrace
 
-GCC_VERSION=12
+GCC_VERSION=13
 
 add-apt-repository ppa:ubuntu-toolchain-r/test --yes
 apt-get update

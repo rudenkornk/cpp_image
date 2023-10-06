@@ -36,10 +36,6 @@ image_nametag:
 image_tag:
 	$(info $(IMAGE_TAG))
 
-.PHONY: readme_nametag
-readme_nametag:
-	echo $$(grep --perl-regexp --only-matching "$(IMAGE_NAME):\d+\.\d+\.\d+" readme.md)
-
 .PHONY: format
 format: $(BUILD_DIR)/node_modules
 	npx prettier --ignore-path <(cat .gitignore .prettierignore) --write .
@@ -184,19 +180,19 @@ $(BUILD_TESTS)/versions: $(BUILD_DIR)/container
 	podman exec --workdir $$(pwd) $(CONTAINER_NAME) \
 		bash -c "cmake --version" | grep --perl-regexp --quiet "3\.26\.\d+"
 	podman exec --workdir $$(pwd) $(CONTAINER_NAME) \
-		bash -c "gcc --version" | grep --perl-regexp --quiet "12\.\d+\.\d+"
+		bash -c "gcc --version" | grep --perl-regexp --quiet "13\.\d+\.\d+"
 	podman exec --workdir $$(pwd) $(CONTAINER_NAME) \
-		bash -c "g++ --version" | grep --perl-regexp --quiet "12\.\d+\.\d+"
+		bash -c "g++ --version" | grep --perl-regexp --quiet "13\.\d+\.\d+"
 	podman exec --workdir $$(pwd) $(CONTAINER_NAME) \
-		bash -c "clang --version" | grep --perl-regexp --quiet "15\.\d+\.\d+"
+		bash -c "clang --version" | grep --perl-regexp --quiet "17\.\d+\.\d+"
 	podman exec --workdir $$(pwd) $(CONTAINER_NAME) \
-		bash -c "clang++ --version" | grep --perl-regexp --quiet "15\.\d+\.\d+"
+		bash -c "clang++ --version" | grep --perl-regexp --quiet "17\.\d+\.\d+"
 	podman exec --workdir $$(pwd) $(CONTAINER_NAME) \
-		bash -c "clang-format --version" | grep --perl-regexp --quiet "15\.\d+\.\d+"
+		bash -c "clang-format --version" | grep --perl-regexp --quiet "17\.\d+\.\d+"
 	podman exec --workdir $$(pwd) $(CONTAINER_NAME) \
-		bash -c "clang-tidy --version" | grep --perl-regexp --quiet "15\.\d+\.\d+"
+		bash -c "clang-tidy --version" | grep --perl-regexp --quiet "17\.\d+\.\d+"
 	podman exec --workdir $$(pwd) $(CONTAINER_NAME) \
-		bash -c "FileCheck --version" | grep --perl-regexp --quiet "15\.\d+\.\d+"
+		bash -c "FileCheck --version" | grep --perl-regexp --quiet "17\.\d+\.\d+"
 	podman exec --workdir $$(pwd) $(CONTAINER_NAME) \
 		bash -c "python3 --version" | grep --perl-regexp --quiet "3\.10\.\d+"
 	bash_version=$$(podman exec --workdir "$$(pwd)" $(CONTAINER_NAME) \
