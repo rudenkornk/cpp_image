@@ -5,7 +5,7 @@ set -o pipefail
 set -o nounset
 set -o xtrace
 
-LLVM_VERSION=15
+LLVM_VERSION=17
 
 DISTRO=$(lsb_release --codename --short)
 ARCH=$(dpkg --print-architecture)
