@@ -25,7 +25,11 @@ DEBIAN_FRONTEND=noninteractive apt-get install --yes --no-install-recommends \
   libclang-$LLVM_VERSION-dev \
   libclang-common-$LLVM_VERSION-dev \
   libclang-cpp$LLVM_VERSION-dev \
+  libclang-rt-$LLVM_VERSION-dev \
+  libfuzzer-$LLVM_VERSION-dev \
+  libmlir-$LLVM_VERSION-dev \
   libomp-$LLVM_VERSION-dev \
+  libpolly-$LLVM_VERSION-dev \
   libunwind-$LLVM_VERSION-dev \
   lld-$LLVM_VERSION \
   lld-$LLVM_VERSION \
@@ -33,6 +37,7 @@ DEBIAN_FRONTEND=noninteractive apt-get install --yes --no-install-recommends \
   lldb-$LLVM_VERSION \
   llvm-$LLVM_VERSION-dev \
   llvm-$LLVM_VERSION-tools \
+  mlir-$LLVM_VERSION-tools \
 
 update-alternatives \
   --install /usr/bin/clang clang /usr/bin/clang-$LLVM_VERSION $LLVM_VERSION"0" \
