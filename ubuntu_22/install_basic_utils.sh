@@ -16,3 +16,10 @@ DEBIAN_FRONTEND=noninteractive apt-get install --yes --no-install-recommends \
   wget \
 
 mkdir --parents /etc/apt/keyrings
+
+apt-get update
+DEBIAN_FRONTEND=noninteractive apt-get install --yes --no-install-recommends \
+  apt-transport-https \
+  git \
+  jq \
+  tar gzip zip unzip bzip2 p7zip-full p7zip-rar xz-utils \

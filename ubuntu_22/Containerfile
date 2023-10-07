@@ -11,6 +11,12 @@ RUN ./install_gcc.sh
 COPY ubuntu_22/install_llvm.sh ./
 RUN ./install_llvm.sh
 
+COPY ubuntu_22/install_gnu_tools.sh ./
+RUN ./install_gnu_tools.sh
+
+COPY ubuntu_22/install_valgrind.sh ./
+RUN ./install_valgrind.sh
+
 COPY ubuntu_22/install_cmake.sh ./
 RUN ./install_cmake.sh
 

@@ -7,14 +7,13 @@ set -o xtrace
 
 apt-get update
 DEBIAN_FRONTEND=noninteractive apt-get install --yes --no-install-recommends \
-  bash-completion \
-  ccache \
+  automake \
+  bison \
   device-tree-compiler \
-  htop \
-  less \
-  lftp \
-  ninja-build \
-  openssh-client \
-  openssh-server \
-  sshpass \
-  vim \
+  dos2unix \
+  flex \
+  gawk \
+  gdb \
+  linux-tools-generic \
+  make \
+  pkg-config \
