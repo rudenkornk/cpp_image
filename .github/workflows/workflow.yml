@@ -89,7 +89,7 @@ jobs:
         uses: tvdias/github-tagger@v0.0.1
         with:
           repo-token: ${{ github.token }}
-          tag: "${{ env.REMOTE_IMAGE_NAMETAG }}"
+          tag: "v${{ env.IMAGE_TAG }}"
 
   lint:
     runs-on: ubuntu-22.04
